@@ -1,0 +1,7 @@
+<%= form_for("user", :url => "#{cognito_auth.root_path}login") do |f| %>
+  <div><%= f.label :username %><br />
+  <%= f.email_field :username,  :class => "form-control"%></div>
+  <div><%= f.label :password %><br />
+  <%= f.password_field :password, :class => "form-control" %></div><br />
+  <div><%= f.submit "Sign in", :class => "btn btn-primary"%></div> <%= link_to 'Forgot Password', "#{cognito_auth.root_path}forgot-password" %>
+<% end %>

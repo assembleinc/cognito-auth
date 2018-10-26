@@ -1,0 +1,5 @@
+<%= form_for("user", :url => "#{cognito_auth.root_path}forgot-password") do |f| %>
+    <div><%= f.label :email %><br />
+    <%= f.email_field :email,:class => "form-control"%></div> <br />
+    <div><%= f.submit "Send Recovery Code", :class => "btn btn-primary"%></div>
+<% end %>
