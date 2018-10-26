@@ -8,6 +8,7 @@ module Cognito
         include ActiveModel::Dirty
 
         included do
+          attr_accessor :new_record
           attribute :description, :string
           attribute :role_arn, :string
           attribute :precedence, :integer
@@ -18,22 +19,21 @@ module Cognito
           alias_attribute :name, :group_name
         end
 
-        def initialize(group=nil)
-          if group.is_a?(String)
-            group = self.class.get_group_data(group)
-          elsif group.is_a?(Struct)
-            group = group.to_h
-          elsif group.nil?
-            group = {user_pool_id: Cognito::Auth.configuration.user_pool_id}
-          end
-          super(group)
-          changes_applied
+        def initialize(*args)
+          @new_record = true
+          super(*args)
         end
 
-
-        def create
-          Cognito::Auth.client.create_group(attributes.symbolize_keys.extract!(:description, :role_arn, :precedence, :group_name, :user_pool_id))
+        def save
+          group_attrs = attributes.symbolize_keys.extract!(:description, :role_arn, :precedence, :group_name)
+          group_attrs[:user_pool_id] = Cognito::Auth.configuration.user_pool_id
+          if @new_record
+            Cognito::Auth.client.create_group(group_attrs)
+          elsif changed?
+            Cognito::Auth.client.update_group(group_attrs)
+          end
           reload!
+          changes_applied
         end
 
         def delete
@@ -66,32 +66,41 @@ module Cognito
           users
         end
 
-        def save
-          if changed?
-            changed = self.changed
-            Cognito::Auth.client.update_group(attributes.symbolize_keys.extract!(:description, :role_arn, :precedence, :group_name, :user_pool_id))
-            changes_applied
-            changed
-          end
-        end
-
-
         def rollback!
           restore_attributes
         end
 
         def reload!
-          data = Cognito::Auth.get_group(group_name).attributes
+          data = self.class.get_group_data(group_name).to_h
           data.each {|key,value| send(key+"=",value)}
         end
 
         class_methods do
 
+          def find(group_name)
+            group = nil
+            resp = get_group_data(group_name)
+            group = init_model(resp.group.to_h)
+          end
+
+          def find_all
+            params = { user_pool_id: Cognito::Auth.configuration.user_pool_id }
+            resp = Cognito::Auth.client.list_groups(params)
+            resp.groups.map { |group| init_model(group.to_h) }
+          end
+
           def get_group_data(group_name)
             Cognito::Auth.client.get_group(
               group_name: group_name,
               user_pool_id: Cognito::Auth.configuration.user_pool_id
-            ).group.to_h
+            )
+          end
+
+          def init_model(item)
+            item = self.new(item)
+            item.new_record = false
+            item.changes_applied
+            item
           end
 
           def get_username(user)
@@ -99,8 +108,6 @@ module Cognito
               username = user
             elsif user.is_a?(Cognito::Auth::User)
               username = user.username
-            elsif user.is_a?(Hash)
-              username = user[:username]
             end
           end
 
