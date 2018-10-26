@@ -70,8 +70,7 @@ module Cognito
             attribute_name: attribute.to_s, # required
             code: confirmation_code.to_s # required
           )
-          @current_user.send(attribute.to_s+"_verified=",true)
-          @current_user.clear_attribute_changes(attribute.to_s+"_verified")
+          @current_user.reload!
         end
       end
 
@@ -103,9 +102,7 @@ module Cognito
 
       def current_user
         if @logged_in
-          @current_user ||= Cognito::Auth::User.new(Cognito::Auth.client.get_user(
-            access_token: Cognito::Auth.session[:access_token]
-          ))
+          @current_user ||= Cognito::Auth::User.init_model(Cognito::Auth::User.get_current_user_data)
         else
           nil
         end
@@ -118,9 +115,7 @@ module Cognito
           if Time.now.to_i > Cognito::Auth.session[:token_expires].to_i
             return authenticate(REFRESH_TOKEN: Cognito::Auth.session[:refresh_token], flow:'REFRESH_TOKEN_AUTH')
           else
-            @current_user = Cognito::Auth::User.new(Cognito::Auth.client.get_user(
-              access_token: Cognito::Auth.session[:access_token]
-            ))
+            @current_user = Cognito::Auth::User.init_model(Cognito::Auth::User.get_current_user_data)
             allowed_groups = Cognito::Auth.configuration.allowed_groups
             if allowed_groups.empty? || @current_user.groups.any? { |group| allowed_groups.include?(group.group_name) }
               @logged_in = true

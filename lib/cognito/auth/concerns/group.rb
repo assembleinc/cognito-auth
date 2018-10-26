@@ -62,7 +62,7 @@ module Cognito
           params[:limit] = limit if limit
           params[:next_token] = page if page
           resp = Cognito::Auth.client.list_users_in_group(params)
-          users = resp.users.map { |user_resp| Cognito::Auth::User.new(user_resp) }
+          users = resp.users.map { |user_resp| Cognito::Auth::User.init_model(user_resp.to_h) }
           users
         end
 
@@ -71,16 +71,14 @@ module Cognito
         end
 
         def reload!
-          data = self.class.get_group_data(group_name).to_h
-          data.each {|key,value| send(key+"=",value)}
+          data = self.class.get_group_data(group_name)
+          data.each {|key,value| send(key.to_s+"=",value)}
         end
 
         class_methods do
 
           def find(group_name)
-            group = nil
-            resp = get_group_data(group_name)
-            group = init_model(resp.group.to_h)
+            group = init_model(get_group_data(group_name))
           end
 
           def find_all
@@ -93,7 +91,7 @@ module Cognito
             Cognito::Auth.client.get_group(
               group_name: group_name,
               user_pool_id: Cognito::Auth.configuration.user_pool_id
-            )
+            ).group.to_h
           end
 
           def init_model(item)

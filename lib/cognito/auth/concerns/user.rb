@@ -19,67 +19,59 @@ module Cognito
           attribute :email_verified, :cognito_bool
           attribute :name, :string
 
-          attr_accessor :mfa_options, :preferred_mfa_setting, :user_mfa_setting_list
+          attr_accessor :mfa_options, :preferred_mfa_setting, :user_mfa_setting_list, :new_record
           attr_reader :errors
           attribute :user_create_date, :date
           attribute :user_last_modified_date, :date
           attribute :enabled, :boolean
           attribute :user_status, :string
-
+          attribute :new_pass, :string
         end
 
-        def initialize(attributes={})
+        def initialize(*args)
           @errors = ActiveModel::Errors.new(self)
-          user_attributes = self.class.parse_user(attributes)
-          # add attributes from cognito
-          # Cognito::Auth.schema_attributes.each do |name, attr|
-          #   name = name.to_sym
-          #   # if admin is accessing user add all schema_attributes otherwise only the readable and writable ones
-          #   if !@is_current_user || self.class.client_attribute(name)
-          #     # if you have defined the type of your custom attribute
-          #     wocustom_name = name.to_s.delete_prefix('custom:').to_sym
-          #     if name.to_s.include?('custom:') && Cognito::Auth.configuration.custom_attributes.key?(wocustom_name)
-          #       self.class.attribute name, Cognito::Auth.configuration.custom_attributes[wocustom_name]
-          #       self.class.alias_attribute wocustom_name, name
-          #     else
-          #       case attr.attribute_data_type
-          #       when 'String'
-          #         self.class.attribute wocustom_name, :string
-          #       when 'Number'
-          #         self.class.attribute wocustom_name, :cognito_int
-          #       when 'Boolean'
-          #         self.class.attribute wocustom_name, :cognito_bool
-          #       end
-          #     end
-          #   else
-          #     # if attribute isn't readable don't try and add it to user
-          #     attributes.delete name
-          #   end
-          # end
-
-          super(user_attributes)
-          changes_applied
-
-          # self.class.validates_each attributes.symbolize_keys.keys do |record, attr, value|
-          #   record.errors.add attr, 'is not writable' if (changed.include?(attr.to_s) && !attribute_writable(attr))
-          # end
+          @new_record = true
+          super(*args)
         end
 
         def save
-          # if @is_current_user
-          #   Cognito::Auth.client.update_user_attributes(
-          #     access_token: Cognito::Auth.session[:access_token],
-          #     user_attributes: cognito_attributes
-          #   )
-          # else
+          username ||= send(Cognito::Auth.pool_description.username_attributes[0])
+          if @new_record
+            unless self.class.user_exists?(username)
+              params = {}
+              params[:username] = username
+              params[:user_attributes] = cognito_attributes
+              params[:user_pool_id] = Cognito::Auth.configuration.user_pool_id
+              params[:user_attributes].concat([{
+                name: 'email_verified',
+                value: Cognito::Auth.configuration.auto_verify_email.to_s
+              }, {
+                name: 'phone_number_verified',
+                value: Cognito::Auth.configuration.auto_verify_phonenumber.to_s
+              }])
+              unless new_pass.nil?
+                temppass = "temppass123**abc./"
+                params[:message_action] = "SUPPRESS"
+                params[:temporary_password] = temppass
+              end
+              Cognito::Auth.client.admin_create_user(params)
+              unless new_pass.nil?
+                # kind of hacky but here I just am replacing the temporary password with the given password
+                auth_resp = Cognito::Auth.client.initiate_auth(auth_flow:"USER_PASSWORD_AUTH",auth_parameters: {USERNAME:username,PASSWORD:temppass},client_id: Cognito::Auth.configuration.client_id)
+                Cognito::Auth.client.respond_to_auth_challenge(client_id:Cognito::Auth.configuration.client_id,challenge_name:auth_resp.challenge_name,session:auth_resp.session,challenge_responses:{USERNAME:username,NEW_PASSWORD:new_pass})
+              end
+            else
+              @errors.add(:username, :invalid, message: "User already exists")
+            end
+          else
             Cognito::Auth.client.admin_update_user_attributes(
               user_pool_id: Cognito::Auth.configuration.user_pool_id,
               username: username,
               user_attributes: cognito_attributes
             )
-          # end
+          end
           changes_applied
-          attributes
+          reload!
         end
 
         def groups(limit: nil, page: nil)
@@ -87,37 +79,7 @@ module Cognito
           params[:next_token] = page if page
           params[:limit] = limit if limit
           resp = Cognito::Auth.client.admin_list_groups_for_user(params)
-          resp.groups.map { |group| Cognito::Auth::Group.new(group) }
-        end
-
-        def create(password:nil)
-          username ||= send(Cognito::Auth.pool_description.username_attributes[0])
-          unless self.class.user_exists?(username)
-            params = {}
-            params[:user_attributes] = cognito_attributes
-            params[:user_pool_id] = Cognito::Auth.configuration.user_pool_id
-            params[:username] = username
-            params[:user_attributes].concat([{
-              name: 'email_verified',
-              value: Cognito::Auth.configuration.auto_verify_email.to_s
-            }, {
-              name: 'phone_number_verified',
-              value: Cognito::Auth.configuration.auto_verify_phonenumber.to_s
-            }])
-            if password
-              temppass = "temppass123**abc./"
-              params[:message_action] = "SUPPRESS"
-              params[:temporary_password] = temppass
-            end
-            Cognito::Auth.client.admin_create_user(params)
-            if password
-              # kind of hacky but here I just am replacing the temporary password with the given password
-              auth_resp = Cognito::Auth.client.initiate_auth(auth_flow:"USER_PASSWORD_AUTH",auth_parameters: {USERNAME:username,PASSWORD:temppass},client_id: Cognito::Auth.configuration.client_id)
-              Cognito::Auth.client.respond_to_auth_challenge(client_id:Cognito::Auth.configuration.client_id,challenge_name:auth_resp.challenge_name,session:auth_resp.session,challenge_responses:{USERNAME:username,NEW_PASSWORD:password})
-            end
-            reload!
-          end
-
+          resp.groups.map { |group| Cognito::Auth::Group.init_model(group.to_h) }
         end
 
         def delete
@@ -126,7 +88,7 @@ module Cognito
             username: username
           )
           attributes.each {|key,value| send(key+"=",nil)}
-          changes_applied
+          reload!
         end
 
         def disable
@@ -134,8 +96,7 @@ module Cognito
             user_pool_id: Cognito::Auth.configuration.user_pool_id, # required
             username: username, # required
           )
-          enabled = false
-          changes_applied
+          reload!
         end
 
         def enable
@@ -143,8 +104,7 @@ module Cognito
             user_pool_id: Cognito::Auth.configuration.user_pool_id, # required
             username: username, # required
           )
-          enabled = true
-          changes_applied
+          reload!
         end
 
         def reset_password
@@ -162,14 +122,13 @@ module Cognito
         end
 
         def reload!
-          data = Cognito::Auth.get_user(username).attributes
-          data.each {|key,value| send(key+"=",value)}
+          data = self.class.parse_attrs(self.class.get_user_data(username))
+          data.each {|key,value| send(key.to_s+"=",value)}
         end
 
         def cognito_attributes
           user_attributes = []
           attributes.extract!(*changed).each do |key, value|
-            # if it is a valid user pool attribute that is mutable and isn't an alias for username and is valid to write by the client
             if attribute_writable(key)
               user_attributes.push(name: key, value: self.class.attribute_types[key].serialize(value))
             end
@@ -179,28 +138,27 @@ module Cognito
 
         def attribute_writable(key)
           pool_attrs = Cognito::Auth.schema_attributes
-          return pool_attrs.include?(key.to_s) && pool_attrs[key.to_s].mutable #&& (!@is_current_user || Cognito::Auth.write_attributes.include?(key.to_s))
+          return pool_attrs.include?(key.to_s) && pool_attrs[key.to_s].mutable
         end
 
         class_methods do
 
-          def parse_user(user)
-            user = if user.is_a?(String)
-              get_user_data(user)
-            elsif user.is_a?(Hash)
-              user
-            else
-              aws_struct_to_hash(user)
-            end
-            user.each do |attr, val|
-              unless attribute_types.symbolize_keys.keys.include?(attr)
-                user.delete attr
-              end
-            end
+          def find(username)
+            init_model(get_user_data(username))
           end
 
-          def client_attribute(name)
-            Cognito::Auth.read_attributes.include?(name.to_s) || Cognito::Auth.write_attributes.include?(name.to_s)
+          def find_all
+            params = { user_pool_id: Cognito::Auth.configuration.user_pool_id }
+            resp = Cognito::Auth.client.list_users(params)
+            resp.users.map { |user_resp| init_model(aws_struct_to_hash(user_resp)) }
+          end
+
+          def init_model(item)
+            parse_attrs(item)
+            item = self.new(item)
+            item.new_record = false
+            item.changes_applied
+            item
           end
 
           def get_user_data(username)
@@ -209,6 +167,26 @@ module Cognito
               username: username
             )
             aws_struct_to_hash(resp)
+          end
+
+          def parse_attrs(user)
+            user.each do |attr, val|
+              unless attribute_types.symbolize_keys.keys.include?(attr)
+                user.delete attr
+              end
+            end
+            user
+          end
+
+          def get_current_user_data
+            resp = Cognito::Auth.client.get_user(
+              access_token: Cognito::Auth.session[:access_token]
+            )
+            aws_struct_to_hash(resp)
+          end
+
+          def client_attribute(name)
+            Cognito::Auth.read_attributes.include?(name.to_s) || Cognito::Auth.write_attributes.include?(name.to_s)
           end
 
           def user_exists?(username)
