@@ -103,7 +103,7 @@ module Cognito
 
           def get_username(user)
             if user.is_a?(String)
-              username = user
+              username = Cognito::Auth::User.find(user).username
             elsif user.is_a?(Cognito::Auth::User)
               username = user.username
             end

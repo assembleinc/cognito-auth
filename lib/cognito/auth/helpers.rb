@@ -14,10 +14,6 @@ module Cognito
         end
         attrs
       end
-
-      def get_username(user)
-        Cognito::Auth::User.new(user).username
-      end
     end
   end
 end
