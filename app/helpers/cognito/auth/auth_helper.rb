@@ -2,7 +2,6 @@ module Cognito
   module Auth
     module AuthHelper
       include Cognito::Auth::Helpers
-      include Cognito::Auth::Admin
 
       def with_cognito_catch
         yield

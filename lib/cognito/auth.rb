@@ -2,7 +2,6 @@ require 'cognito/auth/helpers'
 require 'cognito/auth/configuration'
 require 'cognito/auth/version'
 require 'cognito/auth/current_user'
-require 'cognito/auth/admin'
 require 'cognito/auth/middleware'
 require 'cognito/auth/client'
 require 'cognito/auth/type'
@@ -20,7 +19,6 @@ require 'cognito/auth/concerns/user'
 module Cognito
   module Auth
     extend Cognito::Auth::Helpers
-    extend Cognito::Auth::Admin
     extend Cognito::Auth::CurrentUser
     extend Cognito::Auth::Client
 
