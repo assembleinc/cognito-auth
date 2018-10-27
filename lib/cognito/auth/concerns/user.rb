@@ -17,7 +17,10 @@ module Cognito
           attribute :username, :string
           attribute :email, :string
           attribute :email_verified, :cognito_bool
-          attribute :name, :string
+          attribute :given_name, :string
+          alias_attribute :first_name, :given_name
+          attribute :family_name, :string
+          alias_attribute :last_name, :family_name
 
           attr_accessor :mfa_options, :preferred_mfa_setting, :user_mfa_setting_list, :new_record
           attr_reader :errors
@@ -25,7 +28,8 @@ module Cognito
           attribute :user_last_modified_date, :date
           attribute :enabled, :boolean
           attribute :user_status, :string
-          attribute :new_pass, :string
+          attribute :password, :string
+          attribute :proposed_password, :string
         end
 
         def initialize(*args)
@@ -56,12 +60,12 @@ module Cognito
 
               Cognito::Auth.client.admin_create_user(params)
 
-              if new_pass.nil?
+              if proposed_password.nil?
                 Cognito::Auth::ApplicationMailer.invite_email(self, temppass).deliver_now
               else
                 # kind of hacky but here I just am replacing the temporary password with the given password
                 auth_resp = Cognito::Auth.client.initiate_auth(auth_flow:"USER_PASSWORD_AUTH",auth_parameters: {USERNAME:username,PASSWORD:temppass},client_id: Cognito::Auth.configuration.client_id)
-                Cognito::Auth.client.respond_to_auth_challenge(client_id:Cognito::Auth.configuration.client_id,challenge_name:auth_resp.challenge_name,session:auth_resp.session,challenge_responses:{USERNAME:username,NEW_PASSWORD:new_pass})
+                Cognito::Auth.client.respond_to_auth_challenge(client_id:Cognito::Auth.configuration.client_id,challenge_name:auth_resp.challenge_name,session:auth_resp.session,challenge_responses:{USERNAME:username,NEW_PASSWORD:proposed_password})
               end
             else
               @errors.add(:username, :invalid, message: "User already exists")
@@ -128,6 +132,7 @@ module Cognito
           username ||= send(Cognito::Auth.pool_description.username_attributes[0])
           data = self.class.parse_attrs(self.class.get_user_data(username))
           data.each {|key,value| send(key.to_s+"=",value)}
+          self
         end
 
         def update(params)
@@ -147,6 +152,10 @@ module Cognito
         def attribute_writable(key)
           pool_attrs = Cognito::Auth.schema_attributes
           return pool_attrs.include?(key.to_s) && pool_attrs[key.to_s].mutable
+        end
+
+        def full_name
+          "#{first_name} #{last_name}"
         end
 
         class_methods do

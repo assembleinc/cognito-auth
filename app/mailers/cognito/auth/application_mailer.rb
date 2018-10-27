@@ -9,6 +9,11 @@ module Cognito
         @temporary_password = temporary_password
         mail(to: @user.email, subject: Cognito::Auth.configuration.mail_subject)
       end
+
+      def group_invite_email(user)
+        @user = user
+        mail(to: @user.email, subject: Cognito::Auth.configuration.mail_subject)
+      end
     end
   end
 end

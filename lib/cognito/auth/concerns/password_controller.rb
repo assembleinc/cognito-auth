@@ -17,7 +17,7 @@ module Cognito
             Cognito::Auth.session[:username] = Cognito::Auth::User.find(params[:user][:email]).username
             Cognito::Auth.forgot_password(Cognito::Auth.session[:username])
             flash[:success] = "Recovery Code Sent"
-            redirect_to "#{cognito_auth.root_path}recover-password"
+            redirect_to recover_password_path
           }
         end
 
@@ -28,7 +28,7 @@ module Cognito
           with_cognito_catch {
             Cognito::Auth.recover_password(Cognito::Auth.session[:username], params[:user][:confirmation_code], params[:user][:password])
             flash[:success] = "Password Changed"
-            redirect_to "#{cognito_auth.root_path}login"
+            redirect_to login_path
           }
         end
       end

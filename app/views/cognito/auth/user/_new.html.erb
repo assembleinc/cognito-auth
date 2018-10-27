@@ -1,0 +1,5 @@
+<%= form_for(@user, :url => admin_users_new_path) do |f| %>
+  <%= f.label "email", "Email" %>
+  <%= f.text_field "email", :class => "form-control"%>
+  <%= f.submit "Invite User",  :class => "btn btn-primary" %>
+<% end %>

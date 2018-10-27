@@ -10,7 +10,7 @@ require 'aws-sdk-cognitoidentityprovider'
 require 'cognito/auth/engine' if defined?(Rails)
 require 'cognito/auth/concerns/session_controller'
 require 'cognito/auth/concerns/password_controller'
-require 'cognito/auth/concerns/admin_controller'
+require 'cognito/auth/concerns/user_controller'
 require 'cognito/auth/concerns/profile_controller'
 require 'cognito/auth/errors'
 require 'cognito/auth/concerns/group'

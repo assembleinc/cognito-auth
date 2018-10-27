@@ -7,7 +7,7 @@ module Cognito
         yield
       rescue Aws::CognitoIdentityProvider::Errors::ServiceError => error
         flash[:danger] = error.message
-        redirect_to "#{cognito_auth.root_path}login"
+        redirect_to login_path
         return false
       end
 
@@ -51,7 +51,7 @@ module Cognito
       def log_out
         with_cognito_catch {
           Cognito::Auth.log_out
-          redirect_to "#{cognito_auth.root_path}login"
+          redirect_to login_path
           return true
         }
       end
@@ -64,16 +64,19 @@ module Cognito
         respond_to_auth_challenge(USERNAME:Cognito::Auth.session[:username],NEW_PASSWORD:newpass)
       end
 
-      def invite_user(email,password=nil)
-        @user = Cognito::Auth::User.new({email: email})
-        unless password.nil?
-          @user.new_pass = password
+      def invite_user(email,groups=Cognito::Auth.configuration.invite_groups)
+        @new_user = Cognito::Auth::User.user_exists?(email)
+        @user = Cognito::Auth::User.new({email:email})
+        unless @new_user
+          @user.save
+        else
+          Cognito::Auth::ApplicationMailer.group_invite_email(@user).deliver_now
         end
-        @user.save
-      end
-
-      def add_user_to_group(user, group_name)
-        Cognito::Auth::Group.find(group_name).add_user(user)
+        @user.reload!
+        groups.each do |group|
+          Cognito::Auth::Group.find(group).add_user(@user)
+        end
+        @user
       end
     end
   end

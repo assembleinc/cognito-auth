@@ -1,4 +1,4 @@
-<%= form_for("user", :url => "#{cognito_auth.root_path}recover-password") do |f| %>
+<%= form_for("user", :url => recover_password_path) do |f| %>
   <div><%= f.label :confirmation_code %><br />
   <%= f.text_field :confirmation_code, :class => "form-control" %></div> <br />
   <div><%= f.label :password %><br />

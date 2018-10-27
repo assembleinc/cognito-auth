@@ -14,3 +14,12 @@
  */
 
 @import 'bootstrap';
+
+.wrapper {
+  display: flex;
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+.pull-right {
+  margin-left: auto;
+}

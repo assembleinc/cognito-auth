@@ -16,13 +16,15 @@ module Cognito
           @user = current_user
           @user.update(params[:user])
           @user.save
-          redirect_to "#{cognito_auth.root_path}profile"
-        end
 
-        def update_password
-          with_cognito_catch {
-            Cognito::Auth.change_password(params[:passwords][:old],params[:passwords][:new])
-          }
+          unless params[:user][:password].to_s.empty? || params[:user][:proposed_password].to_s.empty?
+            begin
+              Cognito::Auth.change_password(params[:user][:password],params[:user][:proposed_password])
+            rescue Aws::CognitoIdentityProvider::Errors::ServiceError => error
+              flash[:danger] = "Incorrect password"
+            end
+          end
+          redirect_to profile_path
         end
 
         def send_email_verification

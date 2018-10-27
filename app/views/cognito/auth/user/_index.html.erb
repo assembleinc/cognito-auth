@@ -1,0 +1,29 @@
+
+<div class="wrapper">
+  <h2>Listing Users</h2>
+  <%= link_to admin_users_new_path, class: 'btn btn-primary pull-right' do %>
+    <span class="fa fa-user-plus"> Invite User </span>
+  <% end %>
+</div>
+
+
+<table class="table table-hover">
+  <thead>
+    <tr>
+      <th> Email </th>
+      <th> Name </th>
+      <th class="actions"></th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @users.each_with_index do |_user, _i| %>
+      <tr>
+        <td><%=_user.email%></td>
+        <td><%=_user.full_name%></td>
+        <td>
+
+        </td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>

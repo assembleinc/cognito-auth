@@ -44,7 +44,7 @@ Edit the Rails credentials to store `user_pool_id`, `client_id` and `user_pool_r
 example: `env EDITOR="nano" rails credentials:edit`
 
 To set up the mailer either set
-  `config.action_mailer.default_url_options` in config/environments
+  `config.action_mailer.default_url_options { host: your-base-url }` in config/environments
 or overwrite views/cognito/auth/application_mailer/invite_email.html.erb
 
 ## Core

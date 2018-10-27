@@ -12,11 +12,14 @@ Cognito::Auth::Engine.routes.draw do
   get  '/recover-password', to: "password#edit"
   post '/recover-password', to: "password#update"
 
-  # get  '/profile', to: "profile#edit"
-  # post '/profile', to: "profile#update"
-  # post '/profile/change-password', to: "profile#update_password"
-  # post '/profile/send-attribute-verification', to: "profile#send_attribute_verification"
-  # post '/profile/verify_attribute', to: "profile#verify_attribute"
+  get  '/profile', to: "profile#edit"
+  post '/profile', to: "profile#update"
+  post '/profile/send-attribute-verification', to: "profile#send_attribute_verification"
+  post '/profile/verify_attribute', to: "profile#verify_attribute"
 
-  # get  '/admin', to: "admin#index"
+  get  '/admin/users', to: "user#index"
+  get  '/admin/users/new', to: "user#new"
+  post '/admin/users/new', to: "user#create"
+  get  '/admin/users/edit/:username', to: "user#edit", as: "admin_users_edit"
+  post  '/admin/users/edit/:username', to: "user#update"
 end

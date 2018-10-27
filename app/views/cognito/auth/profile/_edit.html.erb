@@ -1,13 +1,11 @@
-<%= form_for(@user, :url => "#{cognito_auth.root_path}profile") do |f| %>
-  <%= f.label "name","Name" %>
-  <%= f.text_field "name", :class => "form-control"%>
+<%= form_for(@user, :url => profile_path) do |f| %>
+  <%= f.label "first_name","First Name" %>
+  <%= f.text_field "first_name", :class => "form-control"%>
+  <%= f.label "last_name","Last Name" %>
+  <%= f.text_field "last_name", :class => "form-control"%>
+  <%= f.label "password","Old Password" %>
+  <%= f.password_field "password", :class => "form-control"%>
+  <%= f.label "proposed_password","New Password" %>
+  <%= f.password_field "proposed_password", :class => "form-control"%>
   <%= f.submit "Save Profile",  :class => "btn btn-primary" %>
-<% end %>
-
-<%= form_for("passwords", :url => cognito_auth.profile_change_password_path) do |f| %>
-  <%= f.label "old","Old Password" %>
-  <%= f.password_field "old", :class => "form-control"%>
-  <%= f.label "new","New Password" %>
-  <%= f.password_field "new", :class => "form-control"%>
-  <%= f.submit "Change Password",  :class => "btn btn-primary", :id => "change-password" %>
 <% end %>
