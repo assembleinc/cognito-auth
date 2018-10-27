@@ -37,9 +37,15 @@ Other configuration parameters include:
 - `auto_verify_email`: if set to true newly created users will have their email already verified
 - `auto_verify_phonenumber`: if set to true newly created users will have their phone number already verified
 - `default_log_in`: default log in flow used by authenticate method, defaults to `USER_PASSWORD_AUTH`
-
+- `mail_from`: the email address that invites to your application will use
+- `mail_subject`: subject for invitation emails
+-
 Edit the Rails credentials to store `user_pool_id`, `client_id` and `user_pool_region`
 example: `env EDITOR="nano" rails credentials:edit`
+
+To set up the mailer either set
+  `config.action_mailer.default_url_options` in config/environments
+or overwrite views/cognito/auth/application_mailer/invite_email.html.erb
 
 ## Core
 

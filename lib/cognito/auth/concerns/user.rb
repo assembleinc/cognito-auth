@@ -49,13 +49,16 @@ module Cognito
                 name: 'phone_number_verified',
                 value: Cognito::Auth.configuration.auto_verify_phonenumber.to_s
               }])
-              unless new_pass.nil?
-                temppass = "temppass123**abc./"
-                params[:message_action] = "SUPPRESS"
-                params[:temporary_password] = temppass
-              end
+
+              params[:message_action] = "SUPPRESS"
+              temppass = SecureRandom.hex(8)
+              params[:temporary_password] = temppass
+
               Cognito::Auth.client.admin_create_user(params)
-              unless new_pass.nil?
+
+              if new_pass.nil?
+                Cognito::Auth::ApplicationMailer.invite_email(self, temppass).deliver_now
+              else
                 # kind of hacky but here I just am replacing the temporary password with the given password
                 auth_resp = Cognito::Auth.client.initiate_auth(auth_flow:"USER_PASSWORD_AUTH",auth_parameters: {USERNAME:username,PASSWORD:temppass},client_id: Cognito::Auth.configuration.client_id)
                 Cognito::Auth.client.respond_to_auth_challenge(client_id:Cognito::Auth.configuration.client_id,challenge_name:auth_resp.challenge_name,session:auth_resp.session,challenge_responses:{USERNAME:username,NEW_PASSWORD:new_pass})
@@ -122,8 +125,13 @@ module Cognito
         end
 
         def reload!
+          username ||= send(Cognito::Auth.pool_description.username_attributes[0])
           data = self.class.parse_attrs(self.class.get_user_data(username))
           data.each {|key,value| send(key.to_s+"=",value)}
+        end
+
+        def update(params)
+          params.each{|key,value| send(key.to_s+"=",value)}
         end
 
         def cognito_attributes

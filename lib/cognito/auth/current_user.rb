@@ -47,10 +47,12 @@ module Cognito
           # since this would mean that the user is already logged out
           # we will disregard this error
         end
-        Cognito::Auth.session_destroy.delete :access_token
-        Cognito::Auth.session_destroy.delete :refresh_token
-        Cognito::Auth.session_destroy.delete :id_token
-        Cognito::Auth.session_destroy.delete :token_expires
+        unless Cognito::Auth.session_destroy.nil?
+          Cognito::Auth.session_destroy.delete :access_token
+          Cognito::Auth.session_destroy.delete :refresh_token
+          Cognito::Auth.session_destroy.delete :id_token
+          Cognito::Auth.session_destroy.delete :token_expires
+        end
         !@logged_in
       end
 

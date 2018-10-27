@@ -13,14 +13,15 @@ module Cognito
         end
 
         def update
-            @user = params[:user]
-            @user.save
-            redirect_to "#{cognito_auth.root_path}profile"
+          @user = current_user
+          @user.update(params[:user])
+          @user.save
+          redirect_to "#{cognito_auth.root_path}profile"
         end
 
         def update_password
           with_cognito_catch {
-            Cognito::Auth.change_password(params[:oldpass],params[:newpass])
+            Cognito::Auth.change_password(params[:passwords][:old],params[:passwords][:new])
           }
         end
 

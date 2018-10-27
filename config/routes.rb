@@ -11,10 +11,12 @@ Cognito::Auth::Engine.routes.draw do
   post '/forgot-password', to: "password#create"
   get  '/recover-password', to: "password#edit"
   post '/recover-password', to: "password#update"
-  #
+
   # get  '/profile', to: "profile#edit"
   # post '/profile', to: "profile#update"
   # post '/profile/change-password', to: "profile#update_password"
   # post '/profile/send-attribute-verification', to: "profile#send_attribute_verification"
   # post '/profile/verify_attribute', to: "profile#verify_attribute"
+
+  # get  '/admin', to: "admin#index"
 end

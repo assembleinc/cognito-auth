@@ -64,6 +64,17 @@ module Cognito
         respond_to_auth_challenge(USERNAME:Cognito::Auth.session[:username],NEW_PASSWORD:newpass)
       end
 
+      def invite_user(email,password=nil)
+        @user = Cognito::Auth::User.new({email: email})
+        unless password.nil?
+          @user.new_pass = password
+        end
+        @user.save
+      end
+
+      def add_user_to_group(user, group_name)
+        Cognito::Auth::Group.find(group_name).add_user(user)
+      end
     end
   end
 end

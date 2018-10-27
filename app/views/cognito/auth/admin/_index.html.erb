@@ -1,0 +1,40 @@
+<h2>Listing Users</h2>
+
+  = link_to new_user_invitation_path, class: 'btn btn-primary pull-right' do
+    %span.fa.fa-user-plus
+    Invite User
+
+  = link_to new_user_path, class: 'btn btn-success pull-right', style: "margin-right:15px;" do
+    %span.fa.fa-user-plus
+    Add User
+
+<table class="table table-hover">
+  <thead>
+    <tr>
+      <th> Email </th>
+      <th> Name </th>
+      <th class="actions"></th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @users.each_with_index do |_user, _i| %>
+      <tr>
+        <td><%=_user.email%></td>
+        <td><%=_user.name%></td>
+        <td>
+          
+        </td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+        %td.text-center
+          - if _user.admin
+            %i.fa.fa-check.text-success
+        %td.actions.text-right
+          - if _user.valid_invitation?
+            = link_to 'Resend Invite', resend_invite_user_path(_user), class: 'btn btn-info btn-xs', data: {disable_with: "Sending..."}
+            = link_to "Accept Invite", accept_invite_user_path(_user), class: 'btn btn-success btn-xs', disable_with: "Accepting..." if current_user.admin?
+          = link_to 'Edit', edit_user_path(_user), class: 'btn btn-warning btn-xs'
+          = link_to 'Delete', _user, method: :delete, data: { confirm: 'Are you sure?' }, class: 'btn btn-danger btn-xs' if current_user.super_admin
