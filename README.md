@@ -57,6 +57,26 @@ or overwrite views/cognito/auth/application_mailer/invite_email.html.erb
 
 ## Views
 
+## Data Source
+
+If you would like to store some data through Mongoid since cognito data storage is fairly ugly go into Models/Cognito/Auth/user.rb and add the following code:
+```ruby
+module Cognito
+  module Auth
+    class User
+      include Cognito::Auth::Concerns::User
+
+      document_accessor {feilds to pull from mongoid}
+
+      def self.data_source
+        {model to pull from}
+      end
+
+    end
+  end
+end
+```
+
 ## Overwrite
 + Controllers
   - create a new file `controllers/cognito/auth/{controller_to_overwite}.rb`
