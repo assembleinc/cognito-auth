@@ -21,6 +21,7 @@ module Cognito
           alias_attribute :first_name, :given_name
           attribute :family_name, :string
           alias_attribute :last_name, :family_name
+          attribute :name
 
           attr_accessor :mfa_options, :preferred_mfa_setting, :user_mfa_setting_list, :new_record
           attr_reader :errors
@@ -155,6 +156,18 @@ module Cognito
 
         def full_name
           "#{first_name} #{last_name}"
+        end
+
+        def human_name
+          if first_name && last_name
+            full_name
+          elsif name
+            name
+          elsif first_name
+            first_name
+          else
+            email
+          end
         end
 
         class_methods do

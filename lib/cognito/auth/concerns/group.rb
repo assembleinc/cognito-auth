@@ -57,6 +57,18 @@ module Cognito
           )
         end
 
+        def invite_user(email)
+          if Cognito::Auth::User.user_exists?(email)
+            user = Cognito::Auth::User.find(email)
+            add_user(user)
+            Cognito::Auth::ApplicationMailer.group_invite_email(user: user, group: self).deliver_now
+          else
+            user = Cognito::Auth::User.new({email: email})
+            user.save
+            add_user(user);
+          end
+        end
+
         def users(limit: nil, page: nil)
           params = { user_pool_id: Cognito::Auth.configuration.user_pool_id, group_name: group_name }
           params[:limit] = limit if limit
