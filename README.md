@@ -77,6 +77,8 @@ module Cognito
 end
 ```
 
+Then just make sure your data source model has a field called `:username` which will be used to cross reference that model with the user
+
 ## Overwrite
 + Controllers
   - create a new file `controllers/cognito/auth/{controller_to_overwite}.rb`
