@@ -1,6 +1,6 @@
 # Cognito::Auth
 Allows one to quickly boot up a rails application using Amazon Cognito as a login authentication service
-Converts AWS struct objects returned by the aws-sdk into Ac
+Converts AWS struct objects returned by the aws-sdk into Active Model objects
 
 ## Installation
 Add this line to your application's Gemfile:

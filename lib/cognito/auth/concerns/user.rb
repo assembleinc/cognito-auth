@@ -14,6 +14,17 @@ module Cognito
         include ActiveModel::Validations
 
         included do
+          def self.document_accessor(*fields)
+            fields.each do |field|
+              define_method field do
+                @data_document.send(field)
+              end
+              define_method "#{field}=" do |value|
+                @data_document.send("#{field}=",value)
+              end
+            end
+          end
+
           attribute :username, :string
           attribute :email, :string
           attribute :email_verified, :cognito_bool
@@ -31,12 +42,17 @@ module Cognito
           attribute :user_status, :string
           attribute :password, :string
           attribute :proposed_password, :string
+
+          attr_accessor :data_document
         end
 
         def initialize(*args)
           @errors = ActiveModel::Errors.new(self)
           @new_record = true
           super(*args)
+          if self.class.data_source
+            @data_document = self.class.data_source.new()
+          end
         end
 
         def save
@@ -80,6 +96,10 @@ module Cognito
           end
           changes_applied
           reload!
+          if !@data_document.nil?
+            @data_document.username = self.class.get_user_data(username)[:username]
+            @data_document.save
+          end
         end
 
         def groups(limit: nil, page: nil)
@@ -188,6 +208,13 @@ module Cognito
             item.new_record = false
             item.changes_applied
             item
+            if data_source
+              begin
+                item.data_document = data_source.find_by(username: item.username)
+              rescue Mongoid::Errors::DocumentNotFound
+              end
+            end
+            item
           end
 
           def get_user_data(username)
@@ -250,6 +277,11 @@ module Cognito
             end
             user
           end
+
+          def data_source
+            false
+          end
+
         end
       end
     end
