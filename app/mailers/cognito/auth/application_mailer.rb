@@ -10,8 +10,9 @@ module Cognito
         mail(to: @user.email, subject: Cognito::Auth.configuration.mail_subject)
       end
 
-      def group_invite_email(user)
+      def group_invite_email(user,group)
         @user = user
+        @group = group
         mail(to: @user.email, subject: Cognito::Auth.configuration.mail_subject)
       end
     end

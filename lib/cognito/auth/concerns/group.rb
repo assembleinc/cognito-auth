@@ -61,7 +61,7 @@ module Cognito
           if Cognito::Auth::User.user_exists?(email)
             user = Cognito::Auth::User.find(email)
             add_user(user)
-            Cognito::Auth::ApplicationMailer.group_invite_email(user: user, group: self).deliver_now
+            Cognito::Auth::ApplicationMailer.group_invite_email(user,self).deliver_now
           else
             user = Cognito::Auth::User.new({email: email})
             user.save
