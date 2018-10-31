@@ -31,8 +31,6 @@ module Cognito
           attribute :user_status, :string
           attribute :password, :string
           attribute :proposed_password, :string
-
-          attr_accessor :data_document
         end
 
         def initialize(*args)
@@ -189,13 +187,6 @@ module Cognito
             item = self.new(item)
             item.new_record = false
             item.changes_applied
-            item
-            if data_source
-              begin
-                item.data_document = data_source.find_by(username: item.username)
-              rescue Mongoid::Errors::DocumentNotFound
-              end
-            end
             item
           end
 
