@@ -12,7 +12,7 @@
     <tr>
       <th> Email </th>
       <th> Name </th>
-      <th class="actions"></th>
+      <th class="actions"> Actions </th>
     </tr>
   </thead>
   <tbody>
@@ -21,7 +21,12 @@
         <td><%=_user.email%></td>
         <td><%=_user.full_name%></td>
         <td>
-
+          <%= link_to admin_users_edit_path(_user.username), class: 'btn btn-sm btn-warning' do %>
+            Edit
+          <% end %>
+          <%= button_to admin_users_remove_path(_user.username), class: 'btn btn-sm btn-danger', method: 'delete' do %>
+            Remove
+          <% end %>
         </td>
       </tr>
     <% end %>

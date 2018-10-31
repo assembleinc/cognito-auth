@@ -62,7 +62,7 @@ module Cognito
           params[:limit] = limit if limit
           params[:next_token] = page if page
           resp = Cognito::Auth.client.list_users_in_group(params)
-          users = resp.users.map { |user_resp| Cognito::Auth::User.init_model(user_resp.to_h) }
+          users = resp.users.map { |user_resp| Cognito::Auth::User.init_model(Cognito::Auth::User.aws_struct_to_hash(user_resp)) }
           users
         end
 

@@ -4,7 +4,7 @@ Cognito::Auth::Engine.routes.draw do
   post '/login', to: "session#create"
   get  '/new-password-required', to: "session#edit_password"
   post '/new-password-required', to: "session#update_password"
-  post '/logout', to: "session#destroy"
+  delete '/logout', to: "session#destroy"
 
 
   get  '/forgot-password', to: "password#new"
@@ -22,4 +22,5 @@ Cognito::Auth::Engine.routes.draw do
   post '/admin/users/new', to: "user#create"
   get  '/admin/users/edit/:username', to: "user#edit", as: "admin_users_edit"
   post  '/admin/users/edit/:username', to: "user#update"
+  delete '/admin/users/remove/:username', to: "user#remove", as: "admin_users_remove"
 end

@@ -1,7 +1,7 @@
 module Cognito
   module Auth
     module Client
-      
+
       def client
         @client ||= Aws::CognitoIdentityProvider::Client.new(
           region: configuration.user_pool_region

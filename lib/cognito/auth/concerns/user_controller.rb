@@ -8,7 +8,7 @@ module Cognito
         end
 
         def index
-          @users = Cognito::Auth::User.find_all
+            @users = Cognito::Auth::User.find_all
         end
 
         def new

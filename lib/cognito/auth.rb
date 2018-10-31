@@ -25,6 +25,7 @@ module Cognito
     class << self
       attr_writer :configuration, :client, :current_user, :errors
       attr_accessor :logged_in
+      
       def client
         @client ||= Aws::CognitoIdentityProvider::Client.new(
           region: configuration.user_pool_region
