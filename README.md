@@ -57,27 +57,35 @@ or overwrite views/cognito/auth/application_mailer/invite_email.html.erb
 
 ## Views
 
-## Data Source
+## External Data Source
 
-If you would like to store some data through Mongoid since cognito data storage is fairly ugly go into Models/Cognito/Auth/user.rb and add the following code:
+If you would like to pull user data form another place other than cognito just extend the user model with forwardable
+
+Example: in `models/cognito/auth/user.rb` to pull from a Mongoid document called UserProperties that stores user's username and a boolean called admin
 ```ruby
 module Cognito
   module Auth
     class User
       include Cognito::Auth::Concerns::User
+      extend Forwardable
 
-      document_accessor {feilds to pull from mongoid}
+      attr_accessor :user_properties
+      def_delegators :user_properties, :admin, :admin=
 
-      def self.data_source
-        {model to pull from}
+      def user_properties
+        @user_properties ||= ::UserProperties.find_by(username: username)
+      rescue
+        ::UserProperties.new(username: username)
       end
 
+      def save
+        super
+        user_properties.save
+      end
     end
   end
 end
 ```
-
-Then just make sure your data source model has a field called `:username` which will be used to cross reference that model with the user
 
 ## Overwrite
 + Controllers
