@@ -14,17 +14,6 @@ module Cognito
         include ActiveModel::Validations
 
         included do
-          def self.document_accessor(*fields)
-            fields.each do |field|
-              define_method field do
-                @data_document.send(field)
-              end
-              define_method "#{field}=" do |value|
-                @data_document.send("#{field}=",value)
-              end
-            end
-          end
-
           attribute :username, :string
           attribute :email, :string
           attribute :email_verified, :cognito_bool
@@ -50,9 +39,6 @@ module Cognito
           @errors = ActiveModel::Errors.new(self)
           @new_record = true
           super(*args)
-          if self.class.data_source
-            @data_document = self.class.data_source.new()
-          end
         end
 
         def save
@@ -96,10 +82,6 @@ module Cognito
           end
           changes_applied
           reload!
-          if !@data_document.nil?
-            @data_document.username = self.class.get_user_data(username)[:username]
-            @data_document.save
-          end
         end
 
         def groups(limit: nil, page: nil)
@@ -276,10 +258,6 @@ module Cognito
               user = user.merge(aws_attribute_array_to_hash(resp[:attributes]))
             end
             user
-          end
-
-          def data_source
-            false
           end
 
         end
