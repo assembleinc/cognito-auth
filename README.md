@@ -39,7 +39,7 @@ Other configuration parameters include:
 - `default_log_in`: default log in flow used by authenticate method, defaults to `USER_PASSWORD_AUTH`
 - `mail_from`: the email address that invites to your application will use
 - `mail_subject`: subject for invitation emails
--
+
 Edit the Rails credentials to store `user_pool_id`, `client_id` and `user_pool_region`
 example: `env EDITOR="nano" rails credentials:edit`
 

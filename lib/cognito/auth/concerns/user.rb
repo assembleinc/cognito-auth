@@ -95,7 +95,6 @@ module Cognito
             username: username
           )
           attributes.each {|key,value| send(key+"=",nil)}
-          reload!
         end
 
         def disable
