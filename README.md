@@ -22,13 +22,18 @@ before_action :validate!
 
 Now if the user is not logged in they will be redirected to  `/auth/login`
 
-Create a file called `config/initializers/cognito_auth.rb`
+In your initializers add the code:
 ```ruby
 Cognito::Auth.configure do |config|
-  config.user_pool_id = Rails.application.credentials.user_pool_id
-  config.client_id = Rails.application.credentials.client_id
-  config.user_pool_region = Rails.application.credentials.user_pool_region
+  config.user_pool_id = 'user pool id'
+  config.client_id = 'client id'
+  config.user_pool_region = 'user pool region'
 end
+
+Aws.config.update({
+   credentials: Aws::Credentials.new('key id', 'secret access key')
+})
+
 ```
 
 Other configuration parameters include:

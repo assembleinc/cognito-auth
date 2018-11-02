@@ -38,15 +38,6 @@ module Cognito
       def log_out
         @current_user = nil
         @logged_in = false
-        begin
-          Cognito::Auth.client.global_sign_out(
-            access_token: Cognito::Auth.session[:access_token]
-          )
-        rescue Aws::CognitoIdentityProvider::Errors::ServiceError, ArgumentError
-          # if access tokens exist or are revoked we will get errors
-          # since this would mean that the user is already logged out
-          # we will disregard this error
-        end
         unless Cognito::Auth.session_destroy.nil?
           Cognito::Auth.session_destroy.delete :access_token
           Cognito::Auth.session_destroy.delete :refresh_token
