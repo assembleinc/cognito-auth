@@ -59,15 +59,16 @@ module Cognito
               temppass = SecureRandom.hex(8)
               params[:temporary_password] = temppass
 
-              Cognito::Auth.client.admin_create_user(params)
+              @user = init_model(aws_struct_to_hash(Cognito::Auth.client.admin_create_user(params)))
 
               if proposed_password.nil?
-                Cognito::Auth::ApplicationMailer.invite_email(self, temppass).deliver_now
+                Cognito::Auth::ApplicationMailer.invite_email(@user, temppass).deliver_now
               else
                 # kind of hacky but here I just am replacing the temporary password with the given password
                 auth_resp = Cognito::Auth.client.initiate_auth(auth_flow:"USER_PASSWORD_AUTH",auth_parameters: {USERNAME:username,PASSWORD:temppass},client_id: Cognito::Auth.configuration.client_id)
                 Cognito::Auth.client.respond_to_auth_challenge(client_id:Cognito::Auth.configuration.client_id,challenge_name:auth_resp.challenge_name,session:auth_resp.session,challenge_responses:{USERNAME:username,NEW_PASSWORD:proposed_password})
               end
+              update(@user.attributes)
             else
               @errors.add(:username, :invalid, message: "User already exists")
             end
@@ -77,9 +78,10 @@ module Cognito
               username: username,
               user_attributes: cognito_attributes
             )
+            reload!
           end
           changes_applied
-          reload!
+
         end
 
         def groups(limit: nil, page: nil)
