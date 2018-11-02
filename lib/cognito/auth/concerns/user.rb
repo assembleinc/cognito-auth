@@ -59,7 +59,7 @@ module Cognito
               temppass = SecureRandom.hex(8)
               params[:temporary_password] = temppass
 
-              @user = self.class.init_model(self.class.aws_struct_to_hash(Cognito::Auth.client.admin_create_user(params)))
+              @user = self.class.init_model(self.class.aws_struct_to_hash(Cognito::Auth.client.admin_create_user(params).user))
 
               if proposed_password.nil?
                 Cognito::Auth::ApplicationMailer.invite_email(@user, temppass).deliver_now
