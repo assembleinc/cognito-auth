@@ -1,5 +1,5 @@
 module Cognito
   module Auth
-    VERSION = '0.2.8'.freeze
+    VERSION = '0.2.9'.freeze
   end
 end
