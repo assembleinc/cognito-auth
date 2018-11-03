@@ -25,11 +25,12 @@ module Cognito
         end
 
         def update
-          with_cognito_catch {
-            Cognito::Auth.recover_password(Cognito::Auth.session[:username], params[:user][:confirmation_code], params[:user][:password])
-            flash[:success] = "Password Changed"
-            redirect_to login_path
-          }
+          Cognito::Auth.recover_password(Cognito::Auth.session[:username], params[:user][:confirmation_code], params[:user][:password])
+          flash[:success] = "Password Changed"
+          redirect_to login_path
+        rescue Aws::CognitoIdentityProvider::Errors::ServiceError => error
+          flash[:danger] = error.message
+          redirect_back{fallback_location: login_path}
         end
       end
     end
