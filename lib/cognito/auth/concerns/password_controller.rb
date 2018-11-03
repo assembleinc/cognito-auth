@@ -30,7 +30,7 @@ module Cognito
           redirect_to login_path
         rescue Aws::CognitoIdentityProvider::Errors::ServiceError => error
           flash[:danger] = error.message
-          redirect_back{fallback_location: login_path}
+          redirect_back(fallback_location: root_path)
         end
       end
     end
