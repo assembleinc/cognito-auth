@@ -4,9 +4,6 @@ module Cognito
       isolate_namespace Cognito::Auth
       engine_name 'cognito_auth'
 
-      require 'bootstrap'
-      require 'jquery-rails'
-
       config.to_prepare do
         Dir.glob(Rails.root + "app/decorators/**/*_decorator*.rb").each do |c|
           require_dependency(c)
