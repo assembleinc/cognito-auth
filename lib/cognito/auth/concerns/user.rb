@@ -236,7 +236,7 @@ module Cognito
           def user_exists?(username)
             get_user_data(username)
             true
-          rescue Aws::CognitoIdentityProvider::Errors::UserNotFoundException
+          rescue Aws::CognitoIdentityProvider::Errors::ServiceError => error
             false
           end
 
