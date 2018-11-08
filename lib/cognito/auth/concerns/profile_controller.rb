@@ -21,7 +21,7 @@ module Cognito
             begin
               Cognito::Auth.change_password(params[:user][:password],params[:user][:proposed_password])
             rescue Aws::CognitoIdentityProvider::Errors::ServiceError => error
-              flash[:danger] = t('incorrect_password')
+              flash[:danger] = t('incorrect_password', scope: 'cognito-auth')
             end
           end
           redirect_to profile_path
