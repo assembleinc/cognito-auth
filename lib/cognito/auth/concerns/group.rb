@@ -60,8 +60,24 @@ module Cognito
         def invite_user(email)
           if Cognito::Auth::User.user_exists?(email)
             user = Cognito::Auth::User.find(email)
-            add_user(user)
             Cognito::Auth::ApplicationMailer.group_invite_email(user,self).deliver_now
+            add_user(user)
+          else
+            user = Cognito::Auth::User.new({email: email})
+            user.save
+            add_user(user);
+          end
+        end
+
+        def resend_invite(email, reset: false)
+          if Cognito::Auth::User.user_exists?(email)
+            user = Cognito::Auth::User.find(email)
+            if reset && user.user_status == 'FORCE_CHANGE_PASSWORD'
+              user.reset
+            else
+              Cognito::Auth::ApplicationMailer.group_invite_email(user,self).deliver_now
+              add_user(user)
+            end
           else
             user = Cognito::Auth::User.new({email: email})
             user.save

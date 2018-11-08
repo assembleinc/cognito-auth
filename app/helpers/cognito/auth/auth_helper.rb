@@ -6,7 +6,7 @@ module Cognito
       def with_cognito_catch
         yield
       rescue Aws::CognitoIdentityProvider::Errors::ServiceError => error
-        flash[:danger] = error.message
+        flash[:danger] = t(error.class.to_s.demodulize.underscore)
         redirect_to cognito_auth.login_path
         return false
       end
@@ -27,7 +27,7 @@ module Cognito
             return true
           else
             # have a challenge handler at that specific url
-            flash[:warning] = Cognito::Auth.session[:challenge_name].humanize
+            flash[:warning] = t(Cognito::Auth.session[:challenge_name].downcase)
             redirect_to "#{cognito_auth.root_path}#{Cognito::Auth.session[:challenge_name].gsub('_','-').downcase}"
             return false
           end

@@ -81,7 +81,6 @@ module Cognito
             reload!
           end
           changes_applied
-
         end
 
         def groups(limit: nil, page: nil)
@@ -139,6 +138,20 @@ module Cognito
 
         def update(params)
           params.each{|key,value| send(key.to_s+"=",value)}
+        end
+
+        def reset
+          if user_status == 'FORCE_CHANGE_PASSWORD'
+            old_groups = groups
+            old_attrs = attributes
+            delete
+            new_user = Cognito::Auth::User.new(old_attrs)
+            new_user.username = new_user.email
+            new_user.save
+            old_groups.each do |group|
+              group.add_user(new_user)
+            end
+          end
         end
 
         def cognito_attributes

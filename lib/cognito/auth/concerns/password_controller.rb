@@ -14,10 +14,17 @@ module Cognito
 
         def create
           with_cognito_catch {
-            Cognito::Auth.session[:username] = Cognito::Auth::User.find(params[:user][:email]).username
-            Cognito::Auth.forgot_password(Cognito::Auth.session[:username])
-            flash[:success] = "Recovery Code Sent"
-            redirect_to recover_password_path
+            user = Cognito::Auth::User.find(params[:user][:email])
+            if user.user_status == 'CONFIRMED'
+              Cognito::Auth.session[:username] = user.username
+              Cognito::Auth.forgot_password(Cognito::Auth.session[:username])
+              flash[:success] = t('recovery_code_sent')
+              redirect_to recover_password_path
+            elsif user.user_status == 'FORCE_CHANGE_PASSWORD'
+              user.reset
+              flash[:success] = t('new_temporary_password_sent')
+              redirect_to login_path
+            end
           }
         end
 
@@ -26,11 +33,11 @@ module Cognito
 
         def update
           Cognito::Auth.recover_password(Cognito::Auth.session[:username], params[:user][:confirmation_code], params[:user][:password])
-          flash[:success] = "Password Changed"
+          flash[:success] = t('password_changed')
           redirect_to login_path
         rescue Aws::CognitoIdentityProvider::Errors::ServiceError => error
-          flash[:danger] = error.message
-          redirect_back(fallback_location: root_path)
+          flash[:danger] = t(error.class.to_s.demodulize.underscore)
+          redirect_back(fallback_location: login_path)
         end
       end
     end
