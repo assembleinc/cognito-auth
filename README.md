@@ -52,15 +52,29 @@ To set up the mailer either set
   `config.action_mailer.default_url_options { host: your-base-url }` in config/environments
 or overwrite views/cognito/auth/application_mailer/invite_email.html.erb
 
-## Core
+## TODO: Core
 
-## Routes
+## TODO: Routes
 
-## Models
+## TODO: Models
 
-## Controllers
+## TODO: Controllers
 
-## Views
+## TODO: Views
+
+## TODO: Locales
+
+Flash notices are created with i18n keys. Any errors will have the key `cognito-auth.{Error Name in camel case}`.
+A full list of Cognito errors can be found here: https://docs.aws.amazon.com/sdkforruby/api/Aws/CognitoIdentityProvider/Errors.html
+
+Additionally there are:
+- NoUserError (for when someone tries to access the application while not logged in)
+- NotAuthorizedError (for when someone tries to log in and is not part of the correct cognito groups to access the application)
+
+Additional locales that you need to set are:
+- `cognito-auth.password_changed` (When a password is changed through the forgot password flow)
+- `cognito-auth.recovery_code_sent` (When an email is sent through the forgot password flow)
+- `cognito-auth.new_temporary_password_sent` (When a user goes through the forgot password flow but hasn't set their password yet and a new temporary password is sent)
 
 ## External Data Source
 
