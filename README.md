@@ -66,15 +66,24 @@ or overwrite views/cognito/auth/application_mailer/invite_email.html.erb
 
 Flash notices are created with i18n keys. Any errors will have the key `cognito-auth.{Error Name in camel case}`.
 A full list of Cognito errors can be found here: https://docs.aws.amazon.com/sdkforruby/api/Aws/CognitoIdentityProvider/Errors.html
++ Specifically these ones show up in the login flow:
+  - `cognito-auth.not_authorized_exception` (Cognito Authentication failed)
+  - `cognito-auth.user_not_found_exception` (User is not part of the user pool)
+  - `cognito-auth.code_mismatch_exception` (Password recovery code does not match the one sent in the email)
+  - `cognito-auth.invalid_password_exception` (New password doesn't fit the password criteria)
 
-Additionally there are:
-- NoUserError (for when someone tries to access the application while not logged in)
-- NotAuthorizedError (for when someone tries to log in and is not part of the correct cognito groups to access the application)
++ Gem specific errors:
+  - `cognito-auth.no_user_error` (for when someone tries to access the application while not logged in)
+  - `cognito-auth.not_authorized_error` (for when someone tries to log in and is not part of the correct cognito groups to access the application)
 
-Additional locales that you need to set are:
-- `cognito-auth.password_changed` (When a password is changed through the forgot password flow)
-- `cognito-auth.recovery_code_sent` (When an email is sent through the forgot password flow)
-- `cognito-auth.new_temporary_password_sent` (When a user goes through the forgot password flow but hasn't set their password yet and a new temporary password is sent)
++ Authorization challenges will have the key `cognito-auth.{challenge name downcased}`
+  - `cognito-auth.new_password_required` (Warning that shows on the new password required page)
+
++ Additional locales that you need to set are:
+  - `cognito-auth.password_changed` (When a password is changed through the forgot password flow)
+  - `cognito-auth.email_not_found` (When forgot password is attempted but the specified email is not part of the userpool)
+  - `cognito-auth.recovery_code_sent` (When an email is sent through the forgot password flow)
+  - `cognito-auth.new_temporary_password_sent` (When a user goes through the forgot password flow but hasn't set their password yet and a new temporary password is sent)
 
 ## External Data Source
 

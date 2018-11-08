@@ -34,11 +34,17 @@ module Cognito
           end
           reload!
           changes_applied
+          true
+        rescue Aws::CognitoIdentityProvider::Errors::ServiceError => error
+          false
         end
 
         def delete
           users.each { |user| remove_user(user) }
           Cognito::Auth.client.delete_group(group_name:group_name,user_pool_id:user_pool_id)
+          true
+        rescue Aws::CognitoIdentityProvider::Errors::ServiceError => error
+          false
         end
 
         def add_user(user)
@@ -47,6 +53,9 @@ module Cognito
             username: self.class.get_username(user),
             group_name: group_name
           )
+          true
+        rescue Aws::CognitoIdentityProvider::Errors::ServiceError => error
+          false
         end
 
         def remove_user(user)
@@ -55,6 +64,9 @@ module Cognito
             username: self.class.get_username(user),
             group_name: group_name
           )
+          true
+        rescue Aws::CognitoIdentityProvider::Errors::ServiceError => error
+          false
         end
 
         def invite_user(email)
@@ -63,9 +75,7 @@ module Cognito
             Cognito::Auth::ApplicationMailer.group_invite_email(user,self).deliver_now
             add_user(user)
           else
-            user = Cognito::Auth::User.new({email: email})
-            user.save
-            add_user(user);
+            create_and_add_user(email)
           end
         end
 
@@ -79,10 +89,16 @@ module Cognito
               add_user(user)
             end
           else
-            user = Cognito::Auth::User.new({email: email})
-            user.save
-            add_user(user);
+            create_and_add_user(email)
           end
+        end
+
+        def create_and_add_user(email)
+          user = Cognito::Auth::User.new({email: email})
+          user.save
+          add_user(user);
+        rescue Aws::CognitoIdentityProvider::Errors::InvalidParameterException => error
+          false
         end
 
         def users(limit: nil, page: nil)

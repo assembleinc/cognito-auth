@@ -13,7 +13,7 @@ module Cognito
         end
 
         def create
-          with_cognito_catch {
+          if Cognito::Auth::User.user_exists?(params[:user][:email])
             user = Cognito::Auth::User.find(params[:user][:email])
             if user.user_status == 'CONFIRMED'
               Cognito::Auth.session[:username] = user.username
@@ -25,7 +25,10 @@ module Cognito
               flash[:success] = t('new_temporary_password_sent', scope: 'cognito-auth')
               redirect_to login_path
             end
-          }
+          else
+            flash[:danger] = t('email_not_found', scope: 'cognito-auth')
+            redirect_back(fallback_location: login_path)
+          end
         end
 
         def edit
