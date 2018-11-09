@@ -62,7 +62,7 @@ or overwrite views/cognito/auth/application_mailer/invite_email.html.erb
 
 ## TODO: Views
 
-## TODO: Locales
+## Locales
 
 Flash notices are created with i18n keys. Any errors will have the key `cognito-auth.{Error Name in camel case}`.
 A full list of Cognito errors can be found here: https://docs.aws.amazon.com/sdkforruby/api/Aws/CognitoIdentityProvider/Errors.html

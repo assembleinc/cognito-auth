@@ -1,0 +1,43 @@
+en-us:
+  cognito-auth:
+    # Cognito Errors
+
+    # auth failed
+    not_authorized_exception: "Incorrect username or password."
+
+    # user isn't part of the user pool
+    user_not_found_exception: "Incorrect username or password."
+
+    # incorrect forgot password recovery code
+    code_mismatch_exception: "Incorrect recovery code please try again."
+
+    # new password doesn't fit password criteria
+    invalid_password_exception: "Invalid password."
+
+    invalid_parameter_exception: "Incorrect username or password."
+
+    # Cognito Authorization challenges
+
+    # new password required to log in
+    new_password_required: "New password required."
+
+    # Success messages
+
+    # password has been changed
+    password_changed: "Password changed."
+
+    # forgot password recovery code email has been sent
+    recovery_code_sent: "Recovery code sent."
+
+    new_temporary_password_sent: "An email has been sent with instructions on how to set your password."
+
+    # Cognito Auth errors
+
+    # starting forgot password flow giving an email not in the database
+    email_not_found: "Invalid Email."
+
+    # no user is currently logged in
+    no_user_error: "User must be logged in."
+
+    # user isn't part of the correct groups to access the application
+    not_authorized_error: "Incorrect username or password."
