@@ -34,7 +34,7 @@ module Cognito
         end
 
         def initialize(*args)
-          @errors = ActiveModel::Errors.new(self)
+          @cognito_errors = ActiveModel::Errors.new(self)
           @new_record = true
           super(*args)
         end
@@ -70,7 +70,7 @@ module Cognito
               end
               update(@user.attributes)
             else
-              @errors.add(:username, :invalid, message: "User already exists")
+              @cognito_errors.add(:username, :invalid, message: "User already exists")
             end
           else
             Cognito::Auth.client.admin_update_user_attributes(
@@ -157,24 +157,27 @@ module Cognito
         def change_password(password:"", proposed_password:"", confirm_password:"", confirm_password_required: true)
           password_set = false
           if password.to_s.empty?
-            errors.add(:password, :blank)
+            cognito_errors.add(:password, :blank)
           elsif proposed_password.to_s.empty?
-            errors.add(:proposed_password, :blank)
+            cognito_errors.add(:proposed_password, :blank)
           elsif confirm_password_required && proposed_password != confirm_password
-            errors.add(:confirm_password,"must match proposed password")
+            cognito_errors.add(:confirm_password,"must match proposed password")
           elsif Cognito::Auth.current_user != self
-            errors.add(:password, "cannot be edited by other users")
+            cognito_errors.add(:password, "cannot be edited by other users")
           else
             Cognito::Auth.change_password(password, proposed_password)
             password_set = true
           end
           password_set
-        rescue Aws::CognitoIdentityProvider::Errors::NotAuthorizedException, Aws::CognitoIdentityProvider::Errors::InvalidParameterException => e
+        rescue Aws::CognitoIdentityProvider::Errors::ServiceError => e
+          if e.code == 'LimitExceededException'
+            cognito_errors.add(:password, 'change attempt limit exceeded, please try after some time.')
+          end
           if e.message.include? 'previousPassword' || e.code == 'NotAuthorizedException'
-            errors.add(:password, 'is incorrect')
+            cognito_errors.add(:password, 'is incorrect.')
           end
           if e.message.include? 'proposedPassword'
-            errors.add(:proposed_password, 'is invalid')
+            cognito_errors.add(:proposed_password, 'is invalid.')
           end
           password_set
         end
