@@ -154,6 +154,31 @@ module Cognito
           end
         end
 
+        def change_password(password:"", proposed_password:"", confirm_password:"", confirm_password_required: true)
+          password_set = false
+          if password.to_s.empty?
+            errors.add(:password, :blank)
+          elsif proposed_password.to_s.empty?
+            errors.add(:proposed_password, :blank)
+          elsif confirm_password_required && proposed_password != confirm_password
+            errors.add(:confirm_password,"must match proposed password")
+          elsif Cognito::Auth.current_user != self
+            errors.add(:password, "cannot be edited by other users")
+          else
+            Cognito::Auth.change_password(password, proposed_password)
+            password_set = true
+          end
+          password_set
+        rescue Aws::CognitoIdentityProvider::Errors::NotAuthorizedException, Aws::CognitoIdentityProvider::Errors::InvalidParameterException => e
+          if e.message.include? 'previousPassword' || e.code == 'NotAuthorizedException'
+            errors.add(:password, 'is incorrect')
+          end
+          if e.message.include? 'proposedPassword'
+            errors.add(:proposed_password, 'is invalid')
+          end
+          password_set
+        end
+
         def cognito_attributes
           user_attributes = []
           attributes.extract!(*changed).each do |key, value|
@@ -174,15 +199,11 @@ module Cognito
         end
 
         def human_name
-          if first_name && last_name
-            full_name
-          elsif name
-            name
-          elsif first_name
-            first_name
-          else
-            email
-          end
+          (first_name && last_name) ? full_name : name ? name : first_name ? first_name : email
+        end
+
+        def ==(other)
+          username == other.username
         end
 
         class_methods do
