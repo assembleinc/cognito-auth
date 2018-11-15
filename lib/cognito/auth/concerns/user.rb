@@ -24,7 +24,6 @@ module Cognito
           attribute :name
 
           attr_accessor :mfa_options, :preferred_mfa_setting, :user_mfa_setting_list, :new_record
-          attr_reader :errors
           attribute :user_create_date, :date
           attribute :user_last_modified_date, :date
           attribute :enabled, :boolean
@@ -34,7 +33,6 @@ module Cognito
         end
 
         def initialize(*args)
-          @cognito_errors = ActiveModel::Errors.new(self)
           @new_record = true
           super(*args)
         end
@@ -70,7 +68,7 @@ module Cognito
               end
               update(@user.attributes)
             else
-              @cognito_errors.add(:username, :invalid, message: "User already exists")
+              errors.add(:username, :invalid, message: "User already exists")
             end
           else
             Cognito::Auth.client.admin_update_user_attributes(
@@ -157,13 +155,13 @@ module Cognito
         def change_password(password:"", proposed_password:"", confirm_password:"", confirm_password_required: true)
           password_set = false
           if password.to_s.empty?
-            @cognito_errors.add(:password, :blank)
+            errors.add(:password, :blank)
           elsif proposed_password.to_s.empty?
-            @cognito_errors.add(:proposed_password, :blank)
+            errors.add(:proposed_password, :blank)
           elsif confirm_password_required && proposed_password != confirm_password
-            @cognito_errors.add(:confirm_password,"must match proposed password")
+            errors.add(:confirm_password,"must match proposed password")
           elsif Cognito::Auth.current_user != self
-            @cognito_errors.add(:password, "cannot be edited by other users")
+            errors.add(:password, "cannot be edited by other users")
           else
             Cognito::Auth.change_password(password, proposed_password)
             password_set = true
@@ -171,13 +169,13 @@ module Cognito
           password_set
         rescue Aws::CognitoIdentityProvider::Errors::ServiceError => e
           if e.code == 'LimitExceededException'
-            @cognito_errors.add(:password, 'change attempt limit exceeded, please try after some time.')
+            errors.add(:password, 'change attempt limit exceeded, please try after some time.')
           end
           if e.message.include? 'previousPassword' || e.code == 'NotAuthorizedException'
-            @cognito_errors.add(:password, 'is incorrect.')
+            errors.add(:password, 'is incorrect.')
           end
           if e.message.include? 'proposedPassword'
-            @cognito_errors.add(:proposed_password, 'is invalid.')
+            errors.add(:proposed_password, 'is invalid.')
           end
           password_set
         end
