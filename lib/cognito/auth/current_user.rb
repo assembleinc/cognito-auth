@@ -2,7 +2,6 @@ require 'cognito/auth/helpers'
 require 'aws-sdk-cognitoidentityprovider'
 require 'json/jwt'
 require 'curb'
-require 'jwt'
 module Cognito
   module Auth
     module CurrentUser

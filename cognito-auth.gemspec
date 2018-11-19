@@ -41,6 +41,5 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'aws-sdk-cognitoidentityprovider'
   spec.add_dependency 'railties'
   spec.add_dependency 'json-jwt'
-  spec.add_dependency 'jwt'
   spec.add_dependency 'curb'
 end

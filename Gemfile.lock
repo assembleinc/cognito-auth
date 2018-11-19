@@ -7,7 +7,6 @@ PATH
       aws-sdk-cognitoidentityprovider
       curb
       json-jwt
-      jwt
       railties
 
 GEM
@@ -63,7 +62,6 @@ GEM
       activesupport
       aes_key_wrap
       bindata
-    jwt (2.1.0)
     loofah (2.2.2)
       crass (~> 1.0.2)
       nokogiri (>= 1.5.9)
