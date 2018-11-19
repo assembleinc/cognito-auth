@@ -1,10 +1,13 @@
 PATH
   remote: .
   specs:
-    cognito-auth (0.4.0)
+    cognito-auth (0.4.1)
       activemodel
       activesupport
       aws-sdk-cognitoidentityprovider
+      curb
+      json-jwt
+      jwt
       railties
 
 GEM
@@ -30,8 +33,9 @@ GEM
       i18n (>= 0.7, < 2)
       minitest (~> 5.1)
       tzinfo (~> 1.1)
+    aes_key_wrap (1.0.1)
     aws-eventstream (1.0.1)
-    aws-partitions (1.112.0)
+    aws-partitions (1.114.0)
     aws-sdk-cognitoidentityprovider (1.10.0)
       aws-sdk-core (~> 3, >= 3.26.0)
       aws-sigv4 (~> 1.0)
@@ -41,9 +45,11 @@ GEM
       aws-sigv4 (~> 1.0)
       jmespath (~> 1.0)
     aws-sigv4 (1.0.3)
+    bindata (2.4.4)
     builder (3.2.3)
     concurrent-ruby (1.0.5)
     crass (1.0.4)
+    curb (0.9.6)
     diff-lcs (1.3)
     dotenv (2.5.0)
     dotenv-rails (2.5.0)
@@ -53,6 +59,11 @@ GEM
     i18n (1.1.0)
       concurrent-ruby (~> 1.0)
     jmespath (1.4.0)
+    json-jwt (1.9.4)
+      activesupport
+      aes_key_wrap
+      bindata
+    jwt (2.1.0)
     loofah (2.2.2)
       crass (~> 1.0.2)
       nokogiri (>= 1.5.9)

@@ -30,6 +30,12 @@ Cognito::Auth.configure do |config|
   config.user_pool_region = 'user pool region'
 end
 
+Cognito::Auth.module_eval do
+  def self.verify(payload)
+    # any custom validations you want to apply to the user
+  end
+end
+
 Aws.config.update({
    credentials: Aws::Credentials.new('key id', 'secret access key')
 })
@@ -37,7 +43,6 @@ Aws.config.update({
 ```
 
 Other configuration parameters include:
-- `allowed_groups`: only users part of these groups will be allowed to access to the application
 - `token_refresh_rate`: how often the access token will refresh, defaults to 1 hour
 - `auto_verify_email`: if set to true newly created users will have their email already verified
 - `auto_verify_phonenumber`: if set to true newly created users will have their phone number already verified

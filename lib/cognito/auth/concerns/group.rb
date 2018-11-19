@@ -119,6 +119,10 @@ module Cognito
           data.each {|key,value| send(key.to_s+"=",value)}
         end
 
+        def ==(other)
+          group_name == other.group_name
+        end
+
         class_methods do
 
           def find(group_name)

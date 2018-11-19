@@ -1,5 +1,8 @@
 require 'cognito/auth/helpers'
 require 'aws-sdk-cognitoidentityprovider'
+require 'json/jwt'
+require 'curb'
+require 'jwt'
 module Cognito
   module Auth
     module CurrentUser
@@ -38,11 +41,11 @@ module Cognito
       def log_out
         @current_user = nil
         @logged_in = false
-        unless Cognito::Auth.session_destroy.nil?
-          Cognito::Auth.session_destroy.delete :access_token
-          Cognito::Auth.session_destroy.delete :refresh_token
-          Cognito::Auth.session_destroy.delete :id_token
-          Cognito::Auth.session_destroy.delete :token_expires
+        unless Cognito::Auth.session.nil?
+          Cognito::Auth.session.delete :access_token
+          Cognito::Auth.session.delete :refresh_token
+          Cognito::Auth.session.delete :id_token
+          Cognito::Auth.session.delete :token_expires
         end
         !@logged_in
       end
@@ -84,6 +87,13 @@ module Cognito
         )
       end
 
+      def get_groups_for_user(username)
+        Cognito::Auth.client.admin_list_groups_for_user(
+          username: username,
+          user_pool_id: Cognito::Auth.configuration.user_pool_id
+        )
+      end
+
       def recover_password(username, confirmation_code, password)
         Cognito::Auth.client.confirm_forgot_password(
           client_id: Cognito::Auth.configuration.client_id, # required
@@ -108,9 +118,8 @@ module Cognito
           if Time.now.to_i > Cognito::Auth.session[:token_expires].to_i
             return authenticate(REFRESH_TOKEN: Cognito::Auth.session[:refresh_token], flow:'REFRESH_TOKEN_AUTH')
           else
-            @current_user = Cognito::Auth::User.init_model(Cognito::Auth::User.get_current_user_data)
-            allowed_groups = Cognito::Auth.configuration.allowed_groups
-            if allowed_groups.empty? || @current_user.groups.any? { |group| allowed_groups.include?(group.group_name) }
+            payload, sig = validate_token(Cognito::Auth.session[:id_token])
+            if  verify_payload(payload) && verify(payload)
               @logged_in = true
               return true
             else
@@ -125,7 +134,29 @@ module Cognito
         end
       end
 
+      def verify(payload)
+        # implement me!
+        true
+      end
+
       protected
+
+      def verify_payload(payload)
+        iss_valid = payload['iss'] == "https://cognito-idp.#{Cognito::Auth.configuration.user_pool_region}.amazonaws.com/#{Cognito::Auth.configuration.user_pool_id}"
+        aud_valid = payload['aud'] == Cognito::Auth.configuration.client_id
+        iss_valid && aud_valid
+      end
+
+      def validate_token(token)
+        keys = JSON.parse(Curl.get("https://cognito-idp.#{Cognito::Auth.configuration.user_pool_region}.amazonaws.com/#{Cognito::Auth.configuration.user_pool_id}/.well-known/jwks.json").body_str)["keys"]
+        keys.map {|key| validate_with_key(token, JSON::JWK.new(key).to_key) }.find{|res| !res.nil?}
+      end
+
+      def validate_with_key(token,key)
+        JSON::JWT.decode(token, key)
+      rescue JSON::JWS::VerificationFailed => e
+        nil
+      end
 
       def store_access_tokens(resp)
         auth_tokens = resp['authentication_result']

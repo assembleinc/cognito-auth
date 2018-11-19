@@ -8,8 +8,7 @@ module Cognito
       def call(env)
         request = ActionDispatch::Request.new(env)
         Cognito::Auth.configure do |config|
-          config.session_destroy = request.cookie_jar
-          config.session = request.cookie_jar.encrypted
+          config.session = request.cookie_jar
         end
 
         @app.call(env)
