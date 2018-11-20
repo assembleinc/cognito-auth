@@ -117,8 +117,8 @@ module Cognito
           if Time.now.to_i > Cognito::Auth.session[:token_expires].to_i
             return authenticate(REFRESH_TOKEN: Cognito::Auth.session[:refresh_token], flow:'REFRESH_TOKEN_AUTH')
           else
-            payload, sig = validate_token(Cognito::Auth.session[:id_token])
-            if  verify_payload(payload) && verify(payload)
+            @token_payload, sig = validate_token(Cognito::Auth.session[:id_token])
+            if  verify_payload(@token_payload) && verify(@token_payload)
               @logged_in = true
               return true
             else
@@ -136,11 +136,6 @@ module Cognito
       def verify(payload)
         # implement me!
         true
-      end
-
-      def token_payload
-        payload, sig = validate_token(Cognito::Auth.session[:id_token])
-        payload
       end
 
       protected

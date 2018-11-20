@@ -24,7 +24,7 @@ module Cognito
 
     class << self
       attr_writer :configuration, :client, :current_user, :errors
-      attr_accessor :logged_in
+      attr_accessor :logged_in, :token_payload
 
       def client
         @client ||= Aws::CognitoIdentityProvider::Client.new(
