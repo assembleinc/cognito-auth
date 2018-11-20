@@ -138,6 +138,11 @@ module Cognito
         true
       end
 
+      def token_payload
+        payload, sig = validate_token(Cognito::Auth.session[:id_token])
+        payload
+      end
+
       protected
 
       def verify_payload(payload)
