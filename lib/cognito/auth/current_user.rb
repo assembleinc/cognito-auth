@@ -45,6 +45,8 @@ module Cognito
           Cognito::Auth.session.delete :refresh_token
           Cognito::Auth.session.delete :id_token
           Cognito::Auth.session.delete :token_expires
+          Cognito::Auth.session.delete :session_token
+          Cognito::Auth.session.delete :challenge_name
         end
         !@logged_in
       end
@@ -83,13 +85,6 @@ module Cognito
         Cognito::Auth.client.forgot_password(
           client_id: Cognito::Auth.configuration.client_id, # required
           username: username, # required
-        )
-      end
-
-      def get_groups_for_user(username)
-        Cognito::Auth.client.admin_list_groups_for_user(
-          username: username,
-          user_pool_id: Cognito::Auth.configuration.user_pool_id
         )
       end
 

@@ -57,11 +57,11 @@ module Cognito
       end
 
       def log_in(username,password)
-        authenticate(USERNAME:username,PASSWORD:password)
+        authenticate(USERNAME:username, PASSWORD:password)
       end
 
       def replace_temporary_password(newpass)
-        respond_to_auth_challenge(USERNAME:Cognito::Auth.session[:username],NEW_PASSWORD:newpass)
+        respond_to_auth_challenge(USERNAME:Cognito::Auth.session[:username], NEW_PASSWORD:newpass)
       end
 
       def invite_user(email,group_name)

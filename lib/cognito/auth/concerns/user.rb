@@ -4,7 +4,6 @@ module Cognito
   module Auth
     module Concerns
       module User
-        extend Cognito::Auth::Helpers
         extend ActiveSupport::Concern
         include ActiveModel::Model
         include ActiveModel::Attributes
@@ -12,6 +11,7 @@ module Cognito
         include ActiveModel::Serializers
         include ActiveModel::AttributeMethods
         include ActiveModel::Validations
+
 
         included do
           attribute :username, :string
@@ -83,10 +83,10 @@ module Cognito
 
         def groups(limit: nil, page: nil)
           params = { username: username, user_pool_id: Cognito::Auth.configuration.user_pool_id }
-          params[:next_token] = page if page
-          params[:limit] = limit if limit
-          resp = Cognito::Auth.client.admin_list_groups_for_user(params)
-          resp.groups.map { |group| Cognito::Auth::Group.init_model(group.to_h) }
+          Cognito::Auth.get_objects(params, limit: limit, page: page, token: :next_token) do |params|
+            resp = Cognito::Auth.client.admin_list_groups_for_user(params)
+            [resp.groups.map { |group| Cognito::Auth::Group.init_model(group.to_h) }, resp.next_token]
+          end
         end
 
         def delete
@@ -213,10 +213,13 @@ module Cognito
             init_model(get_user_data(username))
           end
 
-          def find_all
+          def all(limit: nil, page: nil, filter: nil)
             params = { user_pool_id: Cognito::Auth.configuration.user_pool_id }
-            resp = Cognito::Auth.client.list_users(params)
-            resp.users.map { |user_resp| init_model(aws_struct_to_hash(user_resp)) }
+            params[:filter] = filter if filter.present?
+            Cognito::Auth.get_objects(params, limit: limit, page: page, token: :pagination_token) do |params|
+              resp = Cognito::Auth.client.list_users(params)
+              [resp.users.map { |user_resp| init_model(aws_struct_to_hash(user_resp)) }, resp.pagination_token]
+            end
           end
 
           def init_model(item)
@@ -233,6 +236,8 @@ module Cognito
               username: username
             )
             aws_struct_to_hash(resp)
+          rescue Aws::CognitoIdentityProvider::Errors::ServiceError => error
+            nil
           end
 
           def parse_attrs(user)
@@ -249,6 +254,8 @@ module Cognito
               access_token: Cognito::Auth.session[:access_token]
             )
             aws_struct_to_hash(resp)
+          rescue Aws::CognitoIdentityProvider::Errors::ServiceError => error
+            nil
           end
 
           def client_attribute(name)

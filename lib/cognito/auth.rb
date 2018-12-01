@@ -47,10 +47,6 @@ module Cognito
       def session
         configuration.session
       end
-
-      def session_destroy
-        configuration.session_destroy
-      end
     end
   end
 end

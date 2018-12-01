@@ -70,27 +70,23 @@ module Cognito
         end
 
         def invite_user(email)
-          if Cognito::Auth::User.user_exists?(email)
-            user = Cognito::Auth::User.find(email)
-            Cognito::Auth::ApplicationMailer.group_invite_email(user,self).deliver_now
-            add_user(user)
-          else
-            create_and_add_user(email)
-          end
+          user = Cognito::Auth::User.find(email)
+          Cognito::Auth::ApplicationMailer.group_invite_email(user,self).deliver_now
+          add_user(user)
+        rescue Aws::CognitoIdentityProvider::Errors::UserNotFoundException
+          create_and_add_user(email)
         end
 
         def resend_invite(email, reset: false)
-          if Cognito::Auth::User.user_exists?(email)
-            user = Cognito::Auth::User.find(email)
-            if reset && user.user_status == 'FORCE_CHANGE_PASSWORD'
-              user.reset
-            else
-              Cognito::Auth::ApplicationMailer.group_invite_email(user,self).deliver_now
-              add_user(user)
-            end
+          user = Cognito::Auth::User.find(email)
+          if reset && user.user_status == 'FORCE_CHANGE_PASSWORD'
+            user.reset
           else
-            create_and_add_user(email)
+            Cognito::Auth::ApplicationMailer.group_invite_email(user,self).deliver_now
+            add_user(user)
           end
+        rescue Aws::CognitoIdentityProvider::Errors::UserNotFoundException
+          create_and_add_user(email)
         end
 
         def create_and_add_user(email)
@@ -103,11 +99,10 @@ module Cognito
 
         def users(limit: nil, page: nil)
           params = { user_pool_id: Cognito::Auth.configuration.user_pool_id, group_name: group_name }
-          params[:limit] = limit if limit
-          params[:next_token] = page if page
-          resp = Cognito::Auth.client.list_users_in_group(params)
-          users = resp.users.map { |user_resp| Cognito::Auth::User.init_model(Cognito::Auth::User.aws_struct_to_hash(user_resp)) }
-          users
+          Cognito::Auth.get_objects(params, limit: limit, page: page, token: :next_token) do |params|
+            resp = Cognito::Auth.client.list_users_in_group(params)
+            [resp.users.map { |user_resp| Cognito::Auth::User.init_model(Cognito::Auth::User.aws_struct_to_hash(user_resp)) }, resp.next_token]
+          end
         end
 
         def rollback!
@@ -129,10 +124,12 @@ module Cognito
             group = init_model(get_group_data(group_name))
           end
 
-          def find_all
+          def all(limit:nil, page: nil)
             params = { user_pool_id: Cognito::Auth.configuration.user_pool_id }
-            resp = Cognito::Auth.client.list_groups(params)
-            resp.groups.map { |group| init_model(group.to_h) }
+            Cognito::Auth.get_objects(params, limit: limit, page: page, token: :next_token) do |params|
+              resp = Cognito::Auth.client.list_groups(params)
+              [resp.groups.map { |group| init_model(group.to_h) }, resp.next_token]
+            end
           end
 
           def get_group_data(group_name)
