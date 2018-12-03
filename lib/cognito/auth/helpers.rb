@@ -21,6 +21,7 @@ module Cognito
           offset -= qnum
           params[:limit] = qnum
           objects, params[token] = fetch.call(params)
+          return [] if params[token].nil?
         end
         while limit > 0
           qnum = [limit, 60].min
@@ -28,6 +29,7 @@ module Cognito
           params[:limit] = qnum
           objects, params[token] = fetch.call(params)
           all_results.concat(objects)
+          return all_results if params[token].nil?
         end
         all_results
       end
