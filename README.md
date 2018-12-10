@@ -217,6 +217,7 @@ post '/recover-password', to: "password#update"
   - find(username)
     - returns the user model relating to the specific username
     - valid usernames are whichever username_aliases are set up for your project, one of: `email`, `phone_number` or `username`
+    - if no user is found a `Aws::CognitoIdentityProvider::Errors::UserNotFoundException` is thrown
 
   - all(limit:nil, page: nil, filter: nil)
     - returns all users in user pool with https://docs.aws.amazon.com/sdk-for-ruby/v3/api/Aws/CognitoIdentityProvider/Client.html#list_users

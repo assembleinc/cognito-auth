@@ -236,8 +236,6 @@ module Cognito
               username: username
             )
             aws_struct_to_hash(resp)
-          rescue Aws::CognitoIdentityProvider::Errors::ServiceError => error
-            nil
           end
 
           def parse_attrs(user)
@@ -254,8 +252,6 @@ module Cognito
               access_token: Cognito::Auth.session[:access_token]
             )
             aws_struct_to_hash(resp)
-          rescue Aws::CognitoIdentityProvider::Errors::ServiceError => error
-            nil
           end
 
           def client_attribute(name)
