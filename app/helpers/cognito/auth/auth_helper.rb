@@ -12,7 +12,7 @@ module Cognito
       end
 
       def current_user
-        with_cognito_catch { Cognito::Auth.current_user }
+        with_cognito_catch { @current_user ||= Cognito::Auth.current_user }
       end
 
       def validate!
@@ -62,19 +62,6 @@ module Cognito
 
       def replace_temporary_password(newpass)
         respond_to_auth_challenge(USERNAME:Cognito::Auth.session[:username], NEW_PASSWORD:newpass)
-      end
-
-      def invite_user(email,group_name)
-        @new_user = Cognito::Auth::User.user_exists?(email)
-        @user = Cognito::Auth::User.new({email:email})
-        unless @new_user
-          @user.save
-        else
-          Cognito::Auth::ApplicationMailer.group_invite_email(@user).deliver_now
-        end
-        @user.reload!
-        Cognito::Auth::Group.find(group_name).add_user(@user)
-        @user
       end
 
     end

@@ -38,8 +38,6 @@ module Cognito
       end
 
       def log_out
-        @current_user = nil
-        @logged_in = false
         unless Cognito::Auth.session.nil?
           Cognito::Auth.session.delete :access_token
           Cognito::Auth.session.delete :refresh_token
@@ -48,7 +46,6 @@ module Cognito
           Cognito::Auth.session.delete :session_token
           Cognito::Auth.session.delete :challenge_name
         end
-        !@logged_in
       end
 
       def send_verification_code(attribute)
@@ -67,7 +64,6 @@ module Cognito
             attribute_name: attribute.to_s, # required
             code: confirmation_code.to_s # required
           )
-          @current_user.reload!
         end
       end
 
@@ -98,12 +94,8 @@ module Cognito
       end
 
       def current_user
-        if @logged_in
-          @current_user ||= Cognito::Auth::User.init_model(Cognito::Auth::User.get_current_user_data)
-        else
-          nil
-        end
-      rescue Aws::CognitoIdentityProvider::Errors::NotAuthorizedException
+        Cognito::Auth::User.init_model(Cognito::Auth::User.get_current_user_data)
+      rescue 
         nil
       end
 
@@ -112,9 +104,8 @@ module Cognito
           if Time.now.to_i > Cognito::Auth.session[:token_expires].to_i
             return authenticate(REFRESH_TOKEN: Cognito::Auth.session[:refresh_token], flow:'REFRESH_TOKEN_AUTH')
           else
-            @token_payload, sig = validate_token(Cognito::Auth.session[:id_token])
-            if  verify_payload(@token_payload) && verify(@token_payload)
-              @logged_in = true
+            token_payload, sig = validate_token(Cognito::Auth.session[:id_token])
+            if verify_payload(token_payload) && verify(token_payload)
               return true
             else
               log_out
@@ -166,7 +157,6 @@ module Cognito
         unless resp.challenge_name.nil?
           Cognito::Auth.session[:challenge_name] = resp.challenge_name
           Cognito::Auth.session[:session_token] = resp.session
-          @logged_in = false
         else
           store_access_tokens(resp)
           validate!
