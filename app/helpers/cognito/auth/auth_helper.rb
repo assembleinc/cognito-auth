@@ -22,7 +22,7 @@ module Cognito
       def authenticate(auth_parameters)
         with_cognito_catch {
           Cognito::Auth.authenticate(auth_parameters)
-          if Cognito::Auth.logged_in
+          if @current_user.present?
             redirect_to main_app.root_path
             return true
           else
@@ -37,7 +37,7 @@ module Cognito
       def respond_to_auth_challenge(challenge_responses)
         with_cognito_catch {
           Cognito::Auth.respond_to_auth_challenge(challenge_responses)
-          if Cognito::Auth.logged_in
+          if @current_user.present?
             redirect_to main_app.root_path
             return true
           else
