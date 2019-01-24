@@ -204,7 +204,7 @@ module Cognito
         end
 
         def ==(other)
-          username == other.username
+          other.respond_to?(:username) && username == other.username
         end
 
         class_methods do
