@@ -38,14 +38,14 @@ module Cognito
       end
 
       def log_out
-        unless Cognito::Auth.session.nil?
-          Cognito::Auth.session.delete :access_token
-          Cognito::Auth.session.delete :refresh_token
-          Cognito::Auth.session.delete :id_token
-          Cognito::Auth.session.delete :token_expires
-          Cognito::Auth.session.delete :session_token
-          Cognito::Auth.session.delete :challenge_name
-        end
+        return if Cognito::Auth.session.nil?
+
+        Cognito::Auth.session.delete :access_token
+        Cognito::Auth.session.delete :refresh_token
+        Cognito::Auth.session.delete :id_token
+        Cognito::Auth.session.delete :token_expires
+        Cognito::Auth.session.delete :session_token
+        Cognito::Auth.session.delete :challenge_name
       end
 
       def send_verification_code(attribute)
@@ -95,12 +95,20 @@ module Cognito
 
       def current_user
         Cognito::Auth::User.init_model(Cognito::Auth::User.get_current_user_data)
-      rescue 
-        nil
+      rescue Aws::CognitoIdentityProvider::Errors::NotAuthorizedException
+        # if invalid access token expire the token
+        Cognito::Auth.session[:token_expires] = 0
+        # revalidate and try for the user again otherwise fully log out the user
+        if validate!
+          current_user
+        else
+          log_out
+          raise Cognito::Auth::Errors::NotAuthorizedError
+        end
       end
 
       def validate!
-        if Cognito::Auth.session[:access_token] && Cognito::Auth.session[:token_expires] && Cognito::Auth.session[:refresh_token]
+        if (Cognito::Auth.session.keys & [:access_token, :id_token, :token_expires, :refresh_token]).count == 4
           if Time.now.to_i > Cognito::Auth.session[:token_expires].to_i
             return authenticate(REFRESH_TOKEN: Cognito::Auth.session[:refresh_token], flow:'REFRESH_TOKEN_AUTH')
           else
@@ -110,12 +118,11 @@ module Cognito
             else
               log_out
               raise Cognito::Auth::Errors::NotAuthorizedError
-              return false
             end
           end
         else
+          log_out
           raise Cognito::Auth::Errors::NoUserError
-          return false
         end
       end
 
