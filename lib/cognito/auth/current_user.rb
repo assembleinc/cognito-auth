@@ -108,7 +108,7 @@ module Cognito
       end
 
       def validate!
-        if (Cognito::Auth.session.keys & [:access_token, :id_token, :token_expires, :refresh_token]).count == 4
+        if Cognito::Auth.session[:access_token] && Cognito::Auth.session[:token_expires] && Cognito::Auth.session[:refresh_token] && Cognito::Auth.session[:id_token]
           if Time.now.to_i > Cognito::Auth.session[:token_expires].to_i
             return authenticate(REFRESH_TOKEN: Cognito::Auth.session[:refresh_token], flow:'REFRESH_TOKEN_AUTH')
           else

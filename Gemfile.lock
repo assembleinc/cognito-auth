@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    cognito-auth (0.5.0)
+    cognito-auth (0.5.1)
       activemodel
       activesupport
       aws-sdk-cognitoidentityprovider
