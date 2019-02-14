@@ -1,3 +1,9 @@
++ 0.5.0
+  - Bug fix if access token got edited, but token expiry time hasn't passed and id token was still valid the user could get into the app with an invalid user
+
++ 0.4.9
+  - Change the user == method to check for responds_to(username)
+
 + 0.4.5
   - Throw User not found exception if searching for a non-existant user
 

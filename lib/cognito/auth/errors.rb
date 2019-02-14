@@ -3,14 +3,20 @@ module Cognito
   module Auth
     module Errors
       class NoUserError < Aws::CognitoIdentityProvider::Errors::ServiceError
-        def initialize(message = "User must be logged in.")
-          super({},message)
+        def initialize(message = 'User must be logged in.')
+          super({}, message)
         end
       end
 
       class NotAuthorizedError < Aws::CognitoIdentityProvider::Errors::ServiceError
-        def initialize(message = "User is not authorized.")
-          super({},message)
+        def initialize(message = 'User is not authorized.')
+          super({}, message)
+        end
+      end
+
+      class AuthorizationFailed < Aws::CognitoIdentityProvider::Errors::ServiceError
+        def initialize(message = '')
+          super({}, message)
         end
       end
     end

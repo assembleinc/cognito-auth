@@ -103,7 +103,7 @@ module Cognito
           current_user
         else
           log_out
-          raise Cognito::Auth::Errors::NotAuthorizedError
+          raise Cognito::Auth::Errors::AuthorizationFailed
         end
       end
 
