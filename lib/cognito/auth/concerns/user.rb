@@ -248,6 +248,7 @@ module Cognito
           end
 
           def get_current_user_data
+            return nil if Cognito::Auth.session[:access_token].nil?
             resp = Cognito::Auth.client.get_user(
               access_token: Cognito::Auth.session[:access_token]
             )

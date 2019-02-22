@@ -94,12 +94,16 @@ module Cognito
       end
 
       def current_user
-        Cognito::Auth::User.init_model(Cognito::Auth::User.get_current_user_data)
+        data = Cognito::Auth::User.get_current_user_data
+        if data
+          Cognito::Auth::User.init_model(data)
+        else
+          log_out
+          raise Cognito::Auth::Errors::NoUserError
+        end
       rescue Aws::CognitoIdentityProvider::Errors::NotAuthorizedException
         # if invalid access token expire the token
-        Cognito::Auth.session[:token_expires] = 0
-        # revalidate and try for the user again otherwise fully log out the user
-        if validate!
+        if Cognito::Auth.session[:refresh_token] && authenticate(REFRESH_TOKEN: Cognito::Auth.session[:refresh_token], flow:'REFRESH_TOKEN_AUTH')
           current_user
         else
           log_out
