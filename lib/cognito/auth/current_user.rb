@@ -44,8 +44,8 @@ module Cognito
         Cognito::Auth.session.delete :refresh_token
         Cognito::Auth.session.delete :id_token
         Cognito::Auth.session.delete :token_expires
-        Cognito::Auth.session.delete :session_token
-        Cognito::Auth.session.delete :challenge_name
+        # Cognito::Auth.session.delete :session_token
+        # Cognito::Auth.session.delete :challenge_name
       end
 
       def send_verification_code(attribute)
