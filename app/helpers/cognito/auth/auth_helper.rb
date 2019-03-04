@@ -19,6 +19,10 @@ module Cognito
         with_cognito_catch { Cognito::Auth.validate! }
       end
 
+      def logged_in?
+        Cognito::Auth.logged_in?
+      end
+
       def authenticate(auth_parameters)
         with_cognito_catch {
           Cognito::Auth.authenticate(auth_parameters)

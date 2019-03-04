@@ -102,7 +102,7 @@ module Cognito
           raise Cognito::Auth::Errors::NoUserError
         end
       rescue Aws::CognitoIdentityProvider::Errors::NotAuthorizedException
-        # if invalid access token expire the token
+        # if invalid access token try the refresh token
         if Cognito::Auth.session[:refresh_token] && authenticate(REFRESH_TOKEN: Cognito::Auth.session[:refresh_token], flow:'REFRESH_TOKEN_AUTH')
           current_user
         else
@@ -116,8 +116,7 @@ module Cognito
           if Time.now.to_i > Cognito::Auth.session[:token_expires].to_i
             return authenticate(REFRESH_TOKEN: Cognito::Auth.session[:refresh_token], flow:'REFRESH_TOKEN_AUTH')
           else
-            token_payload, sig = validate_token(Cognito::Auth.session[:id_token])
-            if verify_payload(token_payload) && verify(token_payload)
+            if logged_in?
               return true
             else
               log_out
@@ -133,6 +132,13 @@ module Cognito
       def verify(payload)
         # implement me!
         true
+      end
+
+      def logged_in?
+        return false unless Cognito::Auth.session[:access_token] && Cognito::Auth.session[:token_expires] && Cognito::Auth.session[:refresh_token] && Cognito::Auth.session[:id_token]
+
+        token_payload, _sig = validate_token(Cognito::Auth.session[:id_token])
+        verify_payload(token_payload) && verify(token_payload)
       end
 
       protected
