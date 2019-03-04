@@ -1,3 +1,6 @@
++ 0.5.4
+  - Extract token verification into its own  method that is accessible to controllers as logged_in?
+
 + 0.5.0
   - Bug fix if access token got edited, but token expiry time hasn't passed and id token was still valid the user could get into the app with an invalid user
 
