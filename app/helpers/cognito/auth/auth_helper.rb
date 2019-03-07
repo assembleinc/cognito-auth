@@ -6,8 +6,7 @@ module Cognito
       def with_cognito_catch
         yield
       rescue Aws::CognitoIdentityProvider::Errors::ServiceError => error
-        flash[:danger] = t(error.class.to_s.demodulize.underscore, scope: 'cognito-auth')
-        redirect_to cognito_auth.login_path
+        handle_service_error(error)
         return false
       end
 
@@ -26,13 +25,11 @@ module Cognito
       def authenticate(auth_parameters)
         with_cognito_catch {
           Cognito::Auth.authenticate(auth_parameters)
-          if current_user.present?
-            redirect_to main_app.root_path
+          if logged_in?
+            after_login_success
             return true
           else
-            # have a challenge handler at that specific url
-            flash[:warning] = t(Cognito::Auth.session[:challenge_name].downcase, scope: 'cognito-auth')
-            redirect_to "#{cognito_auth.root_path}#{Cognito::Auth.session[:challenge_name].gsub('_','-').downcase}"
+            handle_login_challenge
             return false
           end
         }
@@ -41,12 +38,12 @@ module Cognito
       def respond_to_auth_challenge(challenge_responses)
         with_cognito_catch {
           Cognito::Auth.respond_to_auth_challenge(challenge_responses)
-          if current_user.present?
-            redirect_to main_app.root_path
+          if logged_in?
+            after_login_success
             return true
           else
             # have a challenge handler at that specific url
-            redirect_to "#{cognito_auth.root_path}#{Cognito::Auth.session[:challenge_name].gsub('_','-').downcase}"
+            handle_login_challenge
             return false
           end
         }
@@ -68,6 +65,19 @@ module Cognito
         respond_to_auth_challenge(USERNAME:Cognito::Auth.session[:username], NEW_PASSWORD:newpass)
       end
 
+      def after_login_success
+        redirect_to main_app.root_path
+      end
+
+      def handle_login_challenge
+        flash[:warning] = t(Cognito::Auth.session[:challenge_name].downcase, scope: 'cognito-auth')
+        redirect_to "#{cognito_auth.root_path}#{Cognito::Auth.session[:challenge_name].gsub('_','-').downcase}"
+      end
+
+      def handle_service_error(error)
+        flash[:danger] = t(error.class.to_s.demodulize.underscore, scope: 'cognito-auth')
+        redirect_to cognito_auth.login_path
+      end
     end
   end
 end
