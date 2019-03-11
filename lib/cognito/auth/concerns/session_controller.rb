@@ -14,7 +14,11 @@ module Cognito
         def create
           # if login is not successful keep track of username
           login_success = log_in(params[:user][:username],params[:user][:password])
-          Cognito::Auth.session[:username] = params[:user][:username] unless login_success
+          if login_success
+            @current_user = Cognito::Auth.current_user
+          else
+            Cognito::Auth.session[:username] = params[:user][:username]
+          end
           login_success
         end
 
