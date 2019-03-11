@@ -15,6 +15,7 @@ require 'cognito/auth/concerns/profile_controller'
 require 'cognito/auth/errors'
 require 'cognito/auth/concerns/group'
 require 'cognito/auth/concerns/user'
+require 'cognito/auth/concerns/auth_helper'
 
 module Cognito
   module Auth

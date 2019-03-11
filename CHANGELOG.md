@@ -1,3 +1,6 @@
++ 0.5.5
+  -  extract `after_login_success`, `handle_login_challenge` and `handle_service_error` into their own methods that can be easily overwritten
+
 + 0.5.4
   - Extract token verification into its own  method that is accessible to controllers as logged_in?
 
