@@ -1,3 +1,8 @@
++ 0.5.8
+  - downcase and strip email for login, forgot_password, recover_password
+  - create a separate error for `password_attempts_exceeded` (the error class is `Aws::CognitoIdentityProvider::Errors::NotAuthorizedException` same as for incorrect password)
+  - recover from errors on passwords_controller create method
+  
 + 0.5.5
   -  extract `after_login_success`, `handle_login_challenge` and `handle_service_error` into their own methods that can be easily overwritten
 
