@@ -30,11 +30,11 @@ module Cognito
       end
 
       def log_in(username, password, validation_data: {})
-        authenticate(USERNAME: username, PASSWORD: password, flow: 'USER_PASSWORD_AUTH', validation_data: validation_data)
+        authenticate(USERNAME: username.strip.downcase, PASSWORD: password, flow: 'USER_PASSWORD_AUTH', validation_data: validation_data)
       end
 
       def replace_temporary_password(username, new_pass)
-        respond_to_auth_challenge(USERNAME: username, NEW_PASSWORD: new_pass)
+        respond_to_auth_challenge(USERNAME: username.strip.downcase, NEW_PASSWORD: new_pass)
       end
 
       def log_out
@@ -80,14 +80,14 @@ module Cognito
       def forgot_password(username)
         Cognito::Auth.client.forgot_password(
           client_id: Cognito::Auth.configuration.client_id, # required
-          username: username, # required
+          username: username.strip.downcase, # required
         )
       end
 
       def recover_password(username, confirmation_code, password)
         Cognito::Auth.client.confirm_forgot_password(
           client_id: Cognito::Auth.configuration.client_id, # required
-          username: username, # required
+          username: username.strip.downcase, # required
           confirmation_code: confirmation_code.to_s, # required
           password: password, # required
         )

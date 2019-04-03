@@ -5,11 +5,16 @@ en-us:
     # auth failed
     not_authorized_exception: "Incorrect username or password."
 
+    password_attempts_exceeded: "Password attempt exceeded, please try again after some time."
+
     # user isn't part of the user pool
     user_not_found_exception: "Incorrect username or password."
 
     # incorrect forgot password recovery code
     code_mismatch_exception: "Incorrect recovery code please try again."
+
+    # limit exceeded
+    limit_exceeded_exception: "Attempt limit exceeded, please try after some time."
 
     # new password doesn't fit password criteria
     invalid_password_exception: "Invalid password."

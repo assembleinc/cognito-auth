@@ -29,6 +29,9 @@ module Cognito
             flash[:danger] = t('email_not_found', scope: 'cognito-auth')
             redirect_back(fallback_location: login_path)
           end
+        rescue Aws::CognitoIdentityProvider::Errors::ServiceError => error
+          flash[:danger] = t(error.class.to_s.demodulize.underscore, scope: 'cognito-auth')
+          redirect_back(fallback_location: login_path)
         end
 
         def edit

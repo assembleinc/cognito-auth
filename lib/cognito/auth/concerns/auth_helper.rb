@@ -79,7 +79,11 @@ module Cognito
         end
 
         def handle_service_error(error)
-          flash[:danger] = t(error.class.to_s.demodulize.underscore, scope: 'cognito-auth')
+          if error.class == Aws::CognitoIdentityProvider::Errors::NotAuthorizedException && error.message === 'Password attempts exceeded'
+            flash[:danger] = t(error.message.gsub(' ','_').downcase, scope: 'cognito-auth')
+          else
+            flash[:danger] = t(error.class.to_s.demodulize.underscore, scope: 'cognito-auth')
+          end
           redirect_to cognito_auth.login_path
         end
       end
