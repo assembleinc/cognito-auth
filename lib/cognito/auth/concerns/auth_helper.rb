@@ -73,7 +73,7 @@ module Cognito
 
         def after_login_success
           if Cognito::Auth.configuration.login_to_root || !Cognito::Auth.session[:redirect_path]
-            redirect_to main_app.root_path 
+            redirect_to main_app.root_path
           else
             redirect_to Cognito::Auth.session[:redirect_path]
           end
