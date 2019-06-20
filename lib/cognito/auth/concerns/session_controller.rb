@@ -13,7 +13,7 @@ module Cognito
 
         def create
           # if login is not successful keep track of username
-          login_success = log_in(params[:user][:username],params[:user][:password])
+          login_success = log_in(params[:user][:username], params[:user][:password])
           if login_success
             @current_user = Cognito::Auth.current_user
           else
@@ -30,8 +30,7 @@ module Cognito
           authenticate(params[:auth_params])
         end
 
-        def edit_password
-        end
+        def edit_password;end
 
         def update_password
           replace_temporary_password(params[:user][:password])

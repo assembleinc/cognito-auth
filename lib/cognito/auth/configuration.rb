@@ -5,7 +5,7 @@ module Cognito
       attr_accessor :app_group, :token_refresh_rate
       attr_accessor :session, :auto_verify_email
       attr_accessor :auto_verify_phonenumber, :default_log_in
-      attr_accessor :mail_from, :mail_subject
+      attr_accessor :mail_from, :mail_subject, :login_to_root
 
       def initialize
         @token_refresh_rate = 3600
@@ -15,6 +15,7 @@ module Cognito
         @default_log_in = 'USER_PASSWORD_AUTH'
         @mail_from = 'no-reply@cognitoauth.com'
         @mail_subject = 'You have been invited'
+        @login_to_root = false
       end
     end
   end

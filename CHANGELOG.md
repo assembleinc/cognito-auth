@@ -1,3 +1,7 @@
++ 0.5.9
+  - track requested url when redirecting to login
+  - once login is complete redirect to that url if configuration `:login_to_root` is false
+  - `:login_to_root` defaults to false
 + 0.5.8
   - downcase and strip email for login, forgot_password, recover_password
   - create a separate error for `password_attempts_exceeded` (the error class is `Aws::CognitoIdentityProvider::Errors::NotAuthorizedException` same as for incorrect password)

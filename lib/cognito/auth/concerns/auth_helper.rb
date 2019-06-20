@@ -8,7 +8,7 @@ module Cognito
           yield
         rescue Aws::CognitoIdentityProvider::Errors::ServiceError => error
           handle_service_error(error)
-          return false
+          false
         end
 
         def current_user
@@ -17,7 +17,9 @@ module Cognito
 
         def validate!
           with_cognito_catch do
+            Cognito::Auth.session[:redirect_path] = request.path unless Cognito::Auth.configuration.login_to_root
             Cognito::Auth.validate!
+            Cognito::Auth.session.delete :redirect_path
             @current_user = Cognito::Auth.current_user
           end
         end
@@ -31,10 +33,10 @@ module Cognito
             Cognito::Auth.authenticate(auth_parameters)
             if logged_in?
               after_login_success
-              return true
+              true
             else
               handle_login_challenge
-              return false
+              false
             end
           end
         end
@@ -44,11 +46,11 @@ module Cognito
             Cognito::Auth.respond_to_auth_challenge(challenge_responses)
             if logged_in?
               after_login_success
-              return true
+              true
             else
               # have a challenge handler at that specific url
               handle_login_challenge
-              return false
+              false
             end
           end
         end
@@ -57,11 +59,11 @@ module Cognito
           with_cognito_catch do
             Cognito::Auth.log_out
             redirect_to login_path
-            return true
+            true
           end
         end
 
-        def log_in(username,password)
+        def log_in(username, password)
           authenticate(USERNAME: username, PASSWORD: password)
         end
 
@@ -70,7 +72,11 @@ module Cognito
         end
 
         def after_login_success
-          redirect_to main_app.root_path
+          if Cognito::Auth.configuration.login_to_root || !Cognito::Auth.session[:redirect_path]
+            redirect_to main_app.root_path 
+          else
+            redirect_to Cognito::Auth.session[:redirect_path]
+          end
         end
 
         def handle_login_challenge
@@ -80,7 +86,7 @@ module Cognito
 
         def handle_service_error(error)
           if error.class == Aws::CognitoIdentityProvider::Errors::NotAuthorizedException && error.message === 'Password attempts exceeded'
-            flash[:danger] = t(error.message.gsub(' ','_').downcase, scope: 'cognito-auth')
+            flash[:danger] = t(error.message.gsub(' ', '_').downcase, scope: 'cognito-auth')
           else
             flash[:danger] = t(error.class.to_s.demodulize.underscore, scope: 'cognito-auth')
           end
