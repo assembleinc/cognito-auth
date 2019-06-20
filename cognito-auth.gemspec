@@ -38,7 +38,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'rspec', '~> 3.0'
   spec.add_dependency 'activemodel'
   spec.add_dependency 'activesupport'
-  spec.add_dependency 'aws-sdk-cognitoidentityprovider'
+  spec.add_dependency 'aws-sdk-cognitoidentityprovider', '1.16.0'
   spec.add_dependency 'railties'
   spec.add_dependency 'json-jwt'
   spec.add_dependency 'curb'

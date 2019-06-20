@@ -1,3 +1,5 @@
++ 0.6.0
+  - revert `aws-sdk-cognitoidentity-provider` to version 1.16.0 because of new dependancies
 + 0.5.9
   - track requested url when redirecting to login
   - once login is complete redirect to that url if configuration `:login_to_root` is false
