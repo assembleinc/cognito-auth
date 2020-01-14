@@ -6,7 +6,7 @@ Converts AWS struct objects returned by the aws-sdk into Active Model objects
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'cognito-auth'
+gem 'cognito-auth', git: 'https://github.com/assemble-inc/cognito-auth.git', tag: '0.6.0'
 ```
 
 Mount the gem in your project routes:
